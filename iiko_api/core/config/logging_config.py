@@ -1,7 +1,8 @@
+import loguru
 from loguru import logger
 
 
-def get_logger(name: str, level: str = "INFO", filepath: str = None, kwargs: dict = None) -> logger:
+def get_logger(name: str, level: str = "INFO", filepath: str = None, kwargs: dict = None) -> loguru.Logger:
     """
     Возвращает объект логгера
 
@@ -13,7 +14,7 @@ def get_logger(name: str, level: str = "INFO", filepath: str = None, kwargs: dic
     """
 
     new_logger = logger.bind(name=name)
-    new_logger.add(sink=filepath, format="{time} {level} {message}", level=level, **kwargs)
+    new_logger.add(sink=filepath, level=level, **kwargs)
     return new_logger
 
 
