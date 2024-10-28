@@ -5,3 +5,5 @@
 # Enviroment
 .venv/
 *.env
+
+db
