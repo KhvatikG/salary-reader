@@ -1,3 +1,3 @@
-from .employees import EmployeesEndpoints
+from .employees import EmployeesEndpoints, RolesEndpoints
 
-__all__ = ['EmployeesEndpoints']
+__all__ = ['EmployeesEndpoints', 'RolesEndpoints']

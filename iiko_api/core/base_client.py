@@ -14,7 +14,7 @@ from iiko_api.core.config.logging_config import get_logger
 logger = get_logger(name=__name__)
 
 LOGIN_ENDPOINT = "/resto/api/auth"
-LOGOUT_ENDPOINT = "/resto/api/auth/logout"
+LOGOUT_ENDPOINT = "/resto/api/logout"
 
 
 class BaseClient:
