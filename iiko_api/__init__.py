@@ -1,10 +1,13 @@
 from .core import BaseClient
 from .endpoints import EmployeesEndpoints, RolesEndpoints
+from dotenv import dotenv_values
+
+config = dotenv_values(".env")
 
 client = BaseClient(
-    base_url="BASE_URL",
-    login="PRO",
-    hash_password="IIKO_PASS"
+    base_url=config.get("BASE_URL"),
+    login=config.get("IIKO_LOGIN"),
+    hash_password=config.get("IIKO_PASS")
 )
 
 client.employees: EmployeesEndpoints = EmployeesEndpoints(client)
