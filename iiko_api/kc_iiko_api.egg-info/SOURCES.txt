@@ -1,0 +1,13 @@
+README.md
+setup.py
+core/__init__.py
+core/base_client.py
+core/config/__init__.py
+core/config/logging_config.py
+core/config/settings.py
+endpoints/__init__.py
+endpoints/employees.py
+kc_iiko_api.egg-info/PKG-INFO
+kc_iiko_api.egg-info/SOURCES.txt
+kc_iiko_api.egg-info/dependency_links.txt
+kc_iiko_api.egg-info/top_level.txt
