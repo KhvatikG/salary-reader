@@ -11,194 +11,423 @@ background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgb
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="roles_settings" native="true">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>40</y>
-      <width>781</width>
-      <height>248</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgba(255, 255, 255, 0);
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <widget class="QComboBox" name="comboBox">
+      <property name="styleSheet">
+       <string notr="true">QComboBox { 
+background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;
+color: white;
+font-weight: bold;
+font-size: 16pt;
+}
+
+QComboBox:item {
+background-color: rgba(255, 255, 255, 70);
+color: white;
+}</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>GONZO</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Культ Еды</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>КРУГ</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="main_frame">
+      <property name="styleSheet">
+       <string notr="true">background-color: none;</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QWidget" name="roles_settings" native="true">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(255, 255, 255, 0);
 border: 1px solid  rgba(255, 255, 255, 70);
-border-radius: 7px</string>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,2,0">
-     <property name="sizeConstraint">
-      <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
-     </property>
-     <item>
-      <widget class="QFrame" name="roles_frame">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgba(255, 255, 255, 30);
+border-radius: 7px;
+color: white;</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0">
+          <property name="sizeConstraint">
+           <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+          </property>
+          <item>
+           <widget class="QFrame" name="roles_frame">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgba(255, 255, 255, 30);
 border: 1px solid rgba(255, 255, 255, 40);
 border-radius: 7px;</string>
-       </property>
-       <layout class="QVBoxLayout" name="MainRoles">
-        <item>
-         <widget class="QLabel" name="roles_label">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0);
-border: 0</string>
-          </property>
-          <property name="text">
-           <string>Программы мотивации:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListWidget" name="roles_table">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="RolesButtons">
+            </property>
+            <layout class="QVBoxLayout" name="roles_layout">
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="roles_label">
+               <property name="styleSheet">
+                <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+               </property>
+               <property name="text">
+                <string>Программы мотивации:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListWidget" name="roles_table">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgba(255, 255, 255, 0)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QLineEdit" name="lineEdit"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="roles_add">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Добавить</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="RolesButtons">
+               <item>
+                <widget class="QPushButton" name="roles_edit">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Редактировать</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="roles_delete">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Удалить</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
           <item>
-           <widget class="QPushButton" name="roles_edit">
+           <widget class="QFrame" name="settings_frame">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;</string>
+            </property>
+            <layout class="QVBoxLayout" name="MainSettings">
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="settings_label">
+               <property name="styleSheet">
+                <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+               </property>
+               <property name="text">
+                <string>Настройка вознагрождения для выбранной должности:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTableWidget" name="settings_table">
+               <property name="styleSheet">
+                <string notr="true">color: white;</string>
+               </property>
+               <attribute name="horizontalHeaderCascadingSectionResizes">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="horizontalHeaderMinimumSectionSize">
+                <number>150</number>
+               </attribute>
+               <attribute name="horizontalHeaderDefaultSectionSize">
+                <number>170</number>
+               </attribute>
+               <attribute name="verticalHeaderCascadingSectionResizes">
+                <bool>false</bool>
+               </attribute>
+               <column>
+                <property name="text">
+                 <string>Выручка в руб.</string>
+                </property>
+                <property name="textAlignment">
+                 <set>AlignLeading|AlignVCenter</set>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Сумма вознаграждения(руб.)</string>
+                </property>
+                <property name="font">
+                 <font>
+                  <family>Segoe UI</family>
+                 </font>
+                </property>
+                <property name="textAlignment">
+                 <set>AlignLeading|AlignVCenter</set>
+                </property>
+               </column>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="SettingsButtons">
+               <item>
+                <widget class="QPushButton" name="settings_save">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Сохранить</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="settings_cancel">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Отменить</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="employees">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;</string>
+            </property>
+            <layout class="QVBoxLayout" name="employees_layout">
+             <item>
+              <widget class="QLabel" name="employees_label">
+               <property name="styleSheet">
+                <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+               </property>
+               <property name="text">
+                <string>Работники в выбранной программе:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListWidget" name="employees_table">
+               <property name="styleSheet">
+                <string notr="true">background-color: rgba(255, 255, 255, 0)</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="employees_edit">
+               <property name="styleSheet">
+                <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+               </property>
+               <property name="text">
+                <string>Редактировать</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="salary_panel">
+         <property name="styleSheet">
+          <string notr="true">background-color:  none;</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,5,1,5,5,5,5">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="layoutDirection">
+             <enum>Qt::LayoutDirection::LeftToRight</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+            </property>
             <property name="text">
-             <string>Редактировать</string>
+             <string>От:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="roles_delete">
-            <property name="text">
-             <string>Удалить</string>
+           <widget class="QDateEdit" name="date_from">
+            <property name="styleSheet">
+             <string notr="true"/>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="roles_add">
+           <widget class="QLabel" name="label_2">
+            <property name="styleSheet">
+             <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+            </property>
             <property name="text">
-             <string>Добавить</string>
+             <string>До:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateEdit" name="date_to">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="refresh_salary">
+            <property name="text">
+             <string>Обновить</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="pushButton_3">
+            <property name="text">
+             <string>Печать</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="get_full_salary_blanc">
+            <property name="text">
+             <string>Подробный отчет</string>
             </property>
            </widget>
           </item>
          </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QFrame" name="settings_frame">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgba(255, 255, 255, 30);
-border: 1px solid rgba(255, 255, 255, 40);
+         <zorder>label</zorder>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="salar_table">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(255, 255, 255, 30);
 border-radius: 7px;</string>
-       </property>
-       <layout class="QVBoxLayout" name="MainSettings">
-        <item>
-         <widget class="QLabel" name="settings_label">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0);
-border: 0
-</string>
-          </property>
-          <property name="text">
-           <string>Настройка вознагрождения для выбранной должности:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QTableWidget" name="settings_table">
-          <attribute name="horizontalHeaderCascadingSectionResizes">
-           <bool>true</bool>
-          </attribute>
-          <attribute name="horizontalHeaderMinimumSectionSize">
-           <number>150</number>
-          </attribute>
-          <attribute name="horizontalHeaderDefaultSectionSize">
-           <number>170</number>
-          </attribute>
-          <attribute name="verticalHeaderCascadingSectionResizes">
-           <bool>false</bool>
-          </attribute>
-          <column>
-           <property name="text">
-            <string>Выручка в руб.</string>
-           </property>
-           <property name="textAlignment">
-            <set>AlignLeading|AlignVCenter</set>
-           </property>
-          </column>
-          <column>
-           <property name="text">
-            <string>Сумма вознаграждения(руб.)</string>
-           </property>
-           <property name="font">
-            <font>
-             <family>Segoe UI</family>
-            </font>
-           </property>
-           <property name="textAlignment">
-            <set>AlignLeading|AlignVCenter</set>
-           </property>
-          </column>
-         </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="SettingsButtons">
-          <item>
-           <widget class="QPushButton" name="settings_save">
-            <property name="text">
-             <string>Сохранить</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="settings_cancel">
-            <property name="text">
-             <string>Отменить</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </widget>
-     </item>
-     <item>
-      <widget class="QFrame" name="employees">
-       <property name="styleSheet">
-        <string notr="true">background-color: rgba(255, 255, 255, 30);
-border: 1px solid rgba(255, 255, 255, 40);
-border-radius: 7px;</string>
-       </property>
-       <layout class="QVBoxLayout" name="MainRoles_2">
-        <item>
-         <widget class="QLabel" name="roles_label_2">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0);
-border: 0</string>
-          </property>
-          <property name="text">
-           <string>Работники в выбранной программе:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QListWidget" name="roles_table_2">
-          <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0)</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="roles_edit_2">
-          <property name="text">
-           <string>Редактировать</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-     </item>
-    </layout>
-   </widget>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

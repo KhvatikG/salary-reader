@@ -23,7 +23,8 @@
      <property name="styleSheet">
       <string notr="true">background-color: rgba(255, 255, 255, 30);
 border: 1px solid rgba(255, 255, 255, 40);
-border-radius: 7px;</string>
+border-radius: 7px;
+color: white;</string>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,1,0">
       <item>
@@ -31,9 +32,11 @@ border-radius: 7px;</string>
         <item>
          <widget class="QLabel" name="label_all_employeees">
           <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0);
-border: 0
-</string>
+           <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
           </property>
           <property name="text">
            <string>Все работники:</string>
@@ -56,6 +59,15 @@ border: 0
        <layout class="QVBoxLayout" name="add_delete_employees_buttons">
         <item>
          <widget class="QPushButton" name="button_ad_in_role">
+          <property name="styleSheet">
+           <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+          </property>
           <property name="text">
            <string>Добавить-&gt;</string>
           </property>
@@ -63,6 +75,15 @@ border: 0
         </item>
         <item>
          <widget class="QPushButton" name="button_delete_from_role">
+          <property name="styleSheet">
+           <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+          </property>
           <property name="text">
            <string>&lt;-Удалить</string>
           </property>
@@ -75,9 +96,11 @@ border: 0
         <item>
          <widget class="QLabel" name="label_employes_in_role">
           <property name="styleSheet">
-           <string notr="true">background-color: rgba(255, 255, 255, 0);
-border: 0
-</string>
+           <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
           </property>
           <property name="text">
            <string>Работники в выбранной роли:</string>
@@ -101,8 +124,18 @@ border: 0
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgba(255, 255, 255, 80);
-border: 1 solid rgba(255, 255, 255, 80);</string>
+      <string notr="true">QPushButton {
+background-color: rgba(255, 255, 255, 80);
+border: 1 solid rgba(255, 255, 255, 80);
+}
+
+QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
      </property>
      <property name="text">
       <string>Сохранить</string>
@@ -118,8 +151,18 @@ border: 1 solid rgba(255, 255, 255, 80);</string>
       </size>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgba(255, 255, 255, 80);
-border: 1 solid rgba(255, 255, 255, 80);</string>
+      <string notr="true">QPushButton {
+background-color: rgba(255, 255, 255, 80);
+border: 1 solid rgba(255, 255, 255, 80);
+}
+
+QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
      </property>
      <property name="text">
       <string>Отменить</string>
