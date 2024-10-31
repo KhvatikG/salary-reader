@@ -18,13 +18,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QFrame,
     QHBoxLayout, QHeaderView, QLabel, QLayout,
     QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
-    QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+    QPushButton, QSizePolicy, QSpacerItem, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
+        MainWindow.resize(992, 630)
         MainWindow.setStyleSheet(u"\n"
 "background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgba(81, 0, 135, 255), stop:0.427447 rgba(41, 61, 132, 235), stop:1 rgba(155, 79, 165, 255));\n"
 "")
@@ -33,12 +34,12 @@ class Ui_MainWindow(object):
         self.centralwidget.setStyleSheet(u"")
         self.verticalLayout_2 = QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
-        self.comboBox = QComboBox(self.centralwidget)
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.setObjectName(u"comboBox")
-        self.comboBox.setStyleSheet(u"QComboBox { \n"
+        self.department = QComboBox(self.centralwidget)
+        self.department.addItem("")
+        self.department.addItem("")
+        self.department.addItem("")
+        self.department.setObjectName(u"department")
+        self.department.setStyleSheet(u"QComboBox { \n"
 "background-color: rgba(255, 255, 255, 30);\n"
 "border: 1px solid rgba(255, 255, 255, 40);\n"
 "border-radius: 7px;\n"
@@ -52,7 +53,7 @@ class Ui_MainWindow(object):
 "color: white;\n"
 "}")
 
-        self.verticalLayout_2.addWidget(self.comboBox)
+        self.verticalLayout_2.addWidget(self.department)
 
         self.main_frame = QFrame(self.centralwidget)
         self.main_frame.setObjectName(u"main_frame")
@@ -86,22 +87,22 @@ class Ui_MainWindow(object):
 
         self.roles_layout.addWidget(self.roles_label)
 
-        self.roles_table = QListWidget(self.roles_frame)
-        self.roles_table.setObjectName(u"roles_table")
-        self.roles_table.setStyleSheet(u"background-color: rgba(255, 255, 255, 0)")
+        self.roles_list = QListWidget(self.roles_frame)
+        self.roles_list.setObjectName(u"roles_list")
+        self.roles_list.setStyleSheet(u"background-color: rgba(255, 255, 255, 0)")
 
-        self.roles_layout.addWidget(self.roles_table)
+        self.roles_layout.addWidget(self.roles_list)
 
         self.horizontalLayout_2 = QHBoxLayout()
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
-        self.lineEdit = QLineEdit(self.roles_frame)
-        self.lineEdit.setObjectName(u"lineEdit")
+        self.roles_add_line = QLineEdit(self.roles_frame)
+        self.roles_add_line.setObjectName(u"roles_add_line")
 
-        self.horizontalLayout_2.addWidget(self.lineEdit)
+        self.horizontalLayout_2.addWidget(self.roles_add_line)
 
-        self.roles_add = QPushButton(self.roles_frame)
-        self.roles_add.setObjectName(u"roles_add")
-        self.roles_add.setStyleSheet(u"QPushButton:hover {\n"
+        self.roles_add_button = QPushButton(self.roles_frame)
+        self.roles_add_button.setObjectName(u"roles_add_button")
+        self.roles_add_button.setStyleSheet(u"QPushButton:hover {\n"
 "background-color: rgba(255, 255, 255, 40)\n"
 "}\n"
 "\n"
@@ -109,7 +110,7 @@ class Ui_MainWindow(object):
 "background-color: rgba(255, 255, 255, 70)\n"
 "}")
 
-        self.horizontalLayout_2.addWidget(self.roles_add)
+        self.horizontalLayout_2.addWidget(self.roles_add_button)
 
 
         self.roles_layout.addLayout(self.horizontalLayout_2)
@@ -154,39 +155,98 @@ class Ui_MainWindow(object):
         self.MainSettings = QVBoxLayout(self.settings_frame)
         self.MainSettings.setObjectName(u"MainSettings")
         self.MainSettings.setContentsMargins(9, 9, 9, 9)
-        self.settings_label = QLabel(self.settings_frame)
-        self.settings_label.setObjectName(u"settings_label")
-        self.settings_label.setStyleSheet(u"color: white;\n"
+        self.label_motivate_settings = QLabel(self.settings_frame)
+        self.label_motivate_settings.setObjectName(u"label_motivate_settings")
+        self.label_motivate_settings.setStyleSheet(u"color: white;\n"
 "font-weight: bold;\n"
 "font-size: 11pt;\n"
 "background-color: none;\n"
 "border: none;")
 
-        self.MainSettings.addWidget(self.settings_label)
+        self.MainSettings.addWidget(self.label_motivate_settings)
 
-        self.settings_table = QTableWidget(self.settings_frame)
-        if (self.settings_table.columnCount() < 2):
-            self.settings_table.setColumnCount(2)
+        self.table_motivate_settings = QTableWidget(self.settings_frame)
+        if (self.table_motivate_settings.columnCount() < 2):
+            self.table_motivate_settings.setColumnCount(2)
         __qtablewidgetitem = QTableWidgetItem()
         __qtablewidgetitem.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter);
-        self.settings_table.setHorizontalHeaderItem(0, __qtablewidgetitem)
+        self.table_motivate_settings.setHorizontalHeaderItem(0, __qtablewidgetitem)
         font = QFont()
         font.setFamilies([u"Segoe UI"])
         __qtablewidgetitem1 = QTableWidgetItem()
         __qtablewidgetitem1.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter);
         __qtablewidgetitem1.setFont(font);
-        self.settings_table.setHorizontalHeaderItem(1, __qtablewidgetitem1)
-        self.settings_table.setObjectName(u"settings_table")
-        self.settings_table.setStyleSheet(u"color: white;")
-        self.settings_table.horizontalHeader().setCascadingSectionResizes(True)
-        self.settings_table.horizontalHeader().setMinimumSectionSize(150)
-        self.settings_table.horizontalHeader().setDefaultSectionSize(170)
-        self.settings_table.verticalHeader().setCascadingSectionResizes(False)
+        self.table_motivate_settings.setHorizontalHeaderItem(1, __qtablewidgetitem1)
+        if (self.table_motivate_settings.rowCount() < 3):
+            self.table_motivate_settings.setRowCount(3)
+        __qtablewidgetitem2 = QTableWidgetItem()
+        self.table_motivate_settings.setItem(0, 0, __qtablewidgetitem2)
+        __qtablewidgetitem3 = QTableWidgetItem()
+        self.table_motivate_settings.setItem(0, 1, __qtablewidgetitem3)
+        __qtablewidgetitem4 = QTableWidgetItem()
+        self.table_motivate_settings.setItem(1, 0, __qtablewidgetitem4)
+        __qtablewidgetitem5 = QTableWidgetItem()
+        self.table_motivate_settings.setItem(1, 1, __qtablewidgetitem5)
+        __qtablewidgetitem6 = QTableWidgetItem()
+        self.table_motivate_settings.setItem(2, 0, __qtablewidgetitem6)
+        __qtablewidgetitem7 = QTableWidgetItem()
+        self.table_motivate_settings.setItem(2, 1, __qtablewidgetitem7)
+        self.table_motivate_settings.setObjectName(u"table_motivate_settings")
+        font1 = QFont()
+        font1.setBold(True)
+        font1.setItalic(False)
+        self.table_motivate_settings.setFont(font1)
+        self.table_motivate_settings.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
+        self.table_motivate_settings.setAutoFillBackground(False)
+        self.table_motivate_settings.setStyleSheet(u"QTableWidget {\n"
+"        gridline-color: gray;  /* \u0423\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0432\u0435\u0442\u0430 \u043b\u0438\u043d\u0438\u0439 */\n"
+"    }\n"
+"    QHeaderView::section {\n"
+"        padding: 3px;  /* \u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044c, \u0447\u0442\u043e \u043d\u0435\u0442 \u043b\u0438\u0448\u043d\u0435\u0433\u043e \u043e\u0442\u0441\u0442\u0443\u043f\u0430 */\n"
+"    }")
+        self.table_motivate_settings.setFrameShape(QFrame.Shape.StyledPanel)
+        self.table_motivate_settings.setSortingEnabled(True)
+        self.table_motivate_settings.horizontalHeader().setCascadingSectionResizes(True)
+        self.table_motivate_settings.horizontalHeader().setMinimumSectionSize(170)
+        self.table_motivate_settings.horizontalHeader().setDefaultSectionSize(170)
+        self.table_motivate_settings.horizontalHeader().setHighlightSections(True)
+        self.table_motivate_settings.horizontalHeader().setProperty(u"showSortIndicator", True)
+        self.table_motivate_settings.horizontalHeader().setStretchLastSection(True)
+        self.table_motivate_settings.verticalHeader().setVisible(False)
+        self.table_motivate_settings.verticalHeader().setCascadingSectionResizes(False)
 
-        self.MainSettings.addWidget(self.settings_table)
+        self.MainSettings.addWidget(self.table_motivate_settings)
 
         self.SettingsButtons = QHBoxLayout()
         self.SettingsButtons.setObjectName(u"SettingsButtons")
+        self.button_add_threshhold = QPushButton(self.settings_frame)
+        self.button_add_threshhold.setObjectName(u"button_add_threshhold")
+        self.button_add_threshhold.setStyleSheet(u"QPushButton:hover {\n"
+"background-color: rgba(255, 255, 255, 40)\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"background-color: rgba(255, 255, 255, 70)\n"
+"}")
+
+        self.SettingsButtons.addWidget(self.button_add_threshhold)
+
+        self.button_delete_threshold = QPushButton(self.settings_frame)
+        self.button_delete_threshold.setObjectName(u"button_delete_threshold")
+        self.button_delete_threshold.setStyleSheet(u"QPushButton:hover {\n"
+"background-color: rgba(255, 255, 255, 40)\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"background-color: rgba(255, 255, 255, 70)\n"
+"}")
+
+        self.SettingsButtons.addWidget(self.button_delete_threshold)
+
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.SettingsButtons.addItem(self.horizontalSpacer)
+
         self.settings_save = QPushButton(self.settings_frame)
         self.settings_save.setObjectName(u"settings_save")
         self.settings_save.setStyleSheet(u"QPushButton:hover {\n"
@@ -211,6 +271,11 @@ class Ui_MainWindow(object):
 
         self.SettingsButtons.addWidget(self.settings_cancel)
 
+        self.SettingsButtons.setStretch(0, 3)
+        self.SettingsButtons.setStretch(1, 3)
+        self.SettingsButtons.setStretch(2, 20)
+        self.SettingsButtons.setStretch(3, 10)
+        self.SettingsButtons.setStretch(4, 10)
 
         self.MainSettings.addLayout(self.SettingsButtons)
 
@@ -320,6 +385,12 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setStretch(4, 5)
         self.horizontalLayout_3.setStretch(5, 5)
         self.horizontalLayout_3.setStretch(6, 5)
+        self.date_from.raise_()
+        self.label_2.raise_()
+        self.date_to.raise_()
+        self.refresh_salary.raise_()
+        self.pushButton_3.raise_()
+        self.get_full_salary_blanc.raise_()
         self.label.raise_()
 
         self.verticalLayout.addWidget(self.salary_panel)
@@ -343,19 +414,38 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"SalaryReader", None))
-        self.comboBox.setItemText(0, QCoreApplication.translate("MainWindow", u"GONZO", None))
-        self.comboBox.setItemText(1, QCoreApplication.translate("MainWindow", u"\u041a\u0443\u043b\u044c\u0442 \u0415\u0434\u044b", None))
-        self.comboBox.setItemText(2, QCoreApplication.translate("MainWindow", u"\u041a\u0420\u0423\u0413", None))
+        self.department.setItemText(0, QCoreApplication.translate("MainWindow", u"GONZO", None))
+        self.department.setItemText(1, QCoreApplication.translate("MainWindow", u"\u041a\u0443\u043b\u044c\u0442 \u0415\u0434\u044b", None))
+        self.department.setItemText(2, QCoreApplication.translate("MainWindow", u"\u041a\u0420\u0423\u0413", None))
 
         self.roles_label.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b \u043c\u043e\u0442\u0438\u0432\u0430\u0446\u0438\u0438:", None))
-        self.roles_add.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
+        self.roles_add_button.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.roles_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.roles_delete.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c", None))
-        self.settings_label.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u0434\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438:", None))
-        ___qtablewidgetitem = self.settings_table.horizontalHeaderItem(0)
+        self.label_motivate_settings.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u0434\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438:", None))
+        ___qtablewidgetitem = self.table_motivate_settings.horizontalHeaderItem(0)
         ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0440\u0443\u0447\u043a\u0430 \u0432 \u0440\u0443\u0431.", None));
-        ___qtablewidgetitem1 = self.settings_table.horizontalHeaderItem(1)
+        ___qtablewidgetitem1 = self.table_motivate_settings.horizontalHeaderItem(1)
         ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0443\u043c\u043c\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u0430\u0436\u0434\u0435\u043d\u0438\u044f(\u0440\u0443\u0431.)", None));
+
+        __sortingEnabled = self.table_motivate_settings.isSortingEnabled()
+        self.table_motivate_settings.setSortingEnabled(False)
+        ___qtablewidgetitem2 = self.table_motivate_settings.item(0, 0)
+        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"323123", None));
+        ___qtablewidgetitem3 = self.table_motivate_settings.item(0, 1)
+        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"123", None));
+        ___qtablewidgetitem4 = self.table_motivate_settings.item(1, 0)
+        ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"1231", None));
+        ___qtablewidgetitem5 = self.table_motivate_settings.item(1, 1)
+        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"123", None));
+        ___qtablewidgetitem6 = self.table_motivate_settings.item(2, 0)
+        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"13321", None));
+        ___qtablewidgetitem7 = self.table_motivate_settings.item(2, 1)
+        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"213", None));
+        self.table_motivate_settings.setSortingEnabled(__sortingEnabled)
+
+        self.button_add_threshhold.setText(QCoreApplication.translate("MainWindow", u"+", None))
+        self.button_delete_threshold.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.settings_save.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", None))
         self.settings_cancel.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c", None))
         self.employees_label.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0430\u0431\u043e\u0442\u043d\u0438\u043a\u0438 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0435:", None))
