@@ -1,10 +1,7 @@
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QTableWidgetItem
-from sqlalchemy.orm import Session
-from typing import Any
 
-
-
-from ..models.models import Employee, Department, MotivationProgram
+from ..models.models import Employee
 
 
 def fill_employees_table(table_widget, employees_list: list[Employee]):
