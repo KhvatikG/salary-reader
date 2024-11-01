@@ -29,6 +29,7 @@ class NumericDelegate(QStyledItemDelegate):
 class SalaryReader(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.changes_made = False  # При изменении данных в таблице, флаг становится True, при сохранении - False
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -56,6 +57,7 @@ class SalaryReader(QMainWindow):
         numeric_delegate = NumericDelegate(self.ui.table_motivate_settings)
         self.ui.table_motivate_settings.setItemDelegateForColumn(0, numeric_delegate)
         self.ui.table_motivate_settings.setItemDelegateForColumn(1, numeric_delegate)
+        self.ui.table_motivate_settings.itemChanged.connect(self.on_table_item_changes)
 
         # Подключаем кнопки добавления строк в таблицу настройки мотивации
         self.ui.button_add_threshhold.clicked.connect(self.add_row)
@@ -227,6 +229,22 @@ class SalaryReader(QMainWindow):
         Заполняет таблицу настройками мотивации для выбранной роли.
         :return:
         """
+        # Проверяем есть ли несохраненные изменения
+        if self.changes_made:
+            msg_box = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "Предупреждение",
+                "Пожалуйста, сохраните изменения в таблице настроек мотивации.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
+            )
+
+            msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
+            reply = msg_box.exec()
+            if reply == QMessageBox.StandardButton.Yes:
+                self.save_table_data_to_db()
+            elif reply == QMessageBox.StandardButton.Cancel:
+                return
+
         if current_role := self.ui.roles_list.currentItem():
             current_role_name: str = current_role.text()
         else:
@@ -289,6 +307,16 @@ class SalaryReader(QMainWindow):
                                                    salary=int(salary_item.text()),
                                                    motivation_program=current_motivation_program))
                 session.commit()
+
+    def on_table_item_changes(self):
+        """
+        Функция для отслеживания несохраненных изменений в таблице мотивации.
+        Фиксирует факт несохраненных изменений.
+        Устанавливает флаг changes_made в True
+        После сохранения или отмены этот флаг должен быть сброшен.
+        :return:
+        """
+        self.changes_made = True
 
 
 if __name__ == '__main__':
