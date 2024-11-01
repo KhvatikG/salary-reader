@@ -6,10 +6,10 @@ from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QComboBox, QStyledItemDelegate, QLineEdit, \
     QTableWidgetItem, QListWidget, QAbstractItemView, QListWidgetItem
 
-from app.models import Employee, MotivationProgram, Department
+from app.models import Employee, MotivationProgram, Department, MotivationThreshold
 from app.models.control_models import delete_motivation_program, get_current_roles
 from app.ui.main_window_ui import Ui_MainWindow
-from app.helpers.helpers import fill_employees_table
+from app.helpers.helpers import fill_employees_table, get_icon_from_svg
 from app.db import get_session
 from app.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 
@@ -18,12 +18,14 @@ with get_session() as session:
     roles = session.query(MotivationProgram).all()
     departments = session.query(Department).all()
 
+
 class NumericDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         editor = QLineEdit(parent)
         validator = QIntValidator(0, 1000000, editor)  # Измените диапазон по мере необходимости
         editor.setValidator(validator)
         return editor
+
 
 class SalaryReader(QMainWindow):
     def __init__(self):
@@ -38,7 +40,9 @@ class SalaryReader(QMainWindow):
 
         # Программы мотивации(Список)
         self.set_current_roles()
-        self.ui.roles_list.currentItemChanged.connect(self.fill_role_settings_table) # Заполняем таблицу при выборе роли
+        self.ui.roles_list.currentItemChanged.connect(  # Заполняем таблицу при выборе роли
+                                        self.fill_role_settings_table
+        )
         self.ui.roles_list.itemChanged.connect(self.update_role_in_db)
         self.ui.roles_list.setCurrentRow(0)  # По умолчанию выбираем первый элемент списка
         self.ui.roles_add_button.clicked.connect(self.add_role)
@@ -52,34 +56,20 @@ class SalaryReader(QMainWindow):
         self.ui.table_motivate_settings.setItemDelegateForColumn(0, numeric_delegate)
         self.ui.table_motivate_settings.setItemDelegateForColumn(1, numeric_delegate)
 
-        #
+        # Подключаем кнопки добавления строк в таблицу настройки мотивации
         self.ui.button_add_threshhold.clicked.connect(self.add_row)
         self.ui.button_delete_threshold.clicked.connect(self.remove_selected_row)
 
         # Устанавливаем иконки для кнопки добавления строки в таблицу порогов мотивации
-        renderer = QSvgRenderer("app/ui/icons/add.svg")
-        pixmap = QPixmap(renderer.viewBox().size())
-        pixmap.fill(Qt.GlobalColor.transparent)  # Заполняем прозрачным цветом
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        renderer.render(painter)
-        painter.end()
-        icon = QIcon(pixmap)
+        icon = get_icon_from_svg("app/ui/icons/add.svg")
         self.ui.button_add_threshhold.setText("")
         self.ui.button_add_threshhold.setIcon(icon)
-        # Устанавливаем иконку для кнопки удаления роли таблицы
-        renderer = QSvgRenderer("app/ui/icons/delete.svg")
-        pixmap = QPixmap(renderer.viewBox().size())
-        pixmap.fill(Qt.GlobalColor.transparent)
-        painter = QPainter(pixmap)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        renderer.render(painter)
-        painter.end()
-        icon = QIcon(pixmap)
+        # Устанавливаем иконку для кнопки удаления строки из таблицы порогов мотивации
+        icon = get_icon_from_svg("app/ui/icons/delete.svg")
         self.ui.button_delete_threshold.setText("")
         self.ui.button_delete_threshold.setIcon(icon)
 
-
+        self.ui.button_settings_save.clicked.connect(self.save_table_data_to_db)
 
     def set_current_roles(self):
         """
@@ -100,7 +90,6 @@ class SalaryReader(QMainWindow):
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
             item.setData(Qt.ItemDataRole.UserRole, role.name)
             self.ui.roles_list.addItem(item)
-
 
     def add_role(self) -> None:
         """
@@ -140,15 +129,14 @@ class SalaryReader(QMainWindow):
 
             # Установка стиля с помощью QPalette
             palette = confirm_dialog.palette()
-            palette.setColor(QPalette.ColorRole.Window, QColor(0, 0, 0, 0)) # Прозрачный фон
-            palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255)) # Белый текст
+            palette.setColor(QPalette.ColorRole.Window, QColor(0, 0, 0, 0))  # Прозрачный фон
+            palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))  # Белый текст
             confirm_dialog.setPalette(palette)
 
             # Установка стиля с помощью QStyleSheet
             confirm_dialog.setStyleSheet(CONFIRM_DIALOG_STYLE)
 
             reply = confirm_dialog.exec()
-
 
             if reply == QMessageBox.StandardButton.Yes:
                 # Выполняем удаление
@@ -182,14 +170,12 @@ class SalaryReader(QMainWindow):
 
         if new_name != original_name:
             with get_session() as session:
-                session.query(MotivationProgram).filter(MotivationProgram.name == original_name).update({"name": new_name})
+                session.query(MotivationProgram).filter(MotivationProgram.name == original_name).update(
+                    {"name": new_name})
                 session.commit()
                 print(f"Изменение названия роли с '{original_name}' на '{new_name}' выполнено!")
         else:
             print("Изменение названия роли отменено!")
-
-
-
 
     def add_row(self):
         """
@@ -228,16 +214,64 @@ class SalaryReader(QMainWindow):
         :return:
         """
         if current_role := self.ui.roles_list.currentItem():
-            role_name : str = current_role.text()
+            current_role_name: str = current_role.text()
         else:
             self.ui.table_motivate_settings.clear()
             return
         with get_session() as session:
-            role: MotivationProgram = session.query(MotivationProgram).filter(MotivationProgram.name == role_name).first()
+            role: MotivationProgram = session.query(MotivationProgram).filter(
+                MotivationProgram.name == current_role_name).first()
             self.ui.table_motivate_settings.setRowCount(len(role.thresholds))
             for i, threshold in enumerate(role.thresholds):
                 self.ui.table_motivate_settings.setItem(i, 0, QTableWidgetItem(str(threshold.revenue_threshold)))
                 self.ui.table_motivate_settings.setItem(i, 1, QTableWidgetItem(str(threshold.salary)))
+
+    def save_table_data_to_db(self):
+        """
+        Функция обновления настроек мотивации из таблицы.
+        Обновляет настройки мотивации из таблицы в БД, если есть запись с таким порогом привязанная к роли.
+        И создает новую если нет
+        :return:
+        """
+        if current_role := self.ui.roles_list.currentItem():
+            current_role_name: str = current_role.text()
+        else:
+            msg_box = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "Предупреждение",
+                "Ни одна программа не была выбрана, чтобы настроить мотивацию, сначала выберите программу",
+                QMessageBox.StandardButton.Ok,
+                self
+            )
+
+            msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
+            msg_box.exec()
+            return
+
+        row_count = self.ui.table_motivate_settings.rowCount()
+
+        with get_session() as session:
+            for row in range(row_count):
+                # Поскольку, у нас есть две колонки: revenue_threshold и salary
+                revenue_threshold_item = self.ui.table_motivate_settings.item(row, 0)
+                salary_item = self.ui.table_motivate_settings.item(row, 1)
+
+                thresholds_record = session.query(
+                    MotivationThreshold).join(MotivationProgram).filter(
+                    MotivationProgram.name == current_role_name,
+                    MotivationThreshold.revenue_threshold == int(revenue_threshold_item.text())
+                ).first()
+
+                if thresholds_record:
+                    thresholds_record.salary = int(salary_item.text())
+                else:
+                    current_motivation_program = session.query(MotivationProgram).filter(
+                        MotivationProgram.name == current_role_name).first()
+
+                    session.add(MotivationThreshold(revenue_threshold=int(revenue_threshold_item.text()),
+                                                   salary=int(salary_item.text()),
+                                                   motivation_program=current_motivation_program))
+                session.commit()
 
 
 if __name__ == '__main__':

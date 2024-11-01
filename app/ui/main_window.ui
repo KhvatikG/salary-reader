@@ -393,7 +393,7 @@ background-color: rgba(255, 255, 255, 70)
                 </spacer>
                </item>
                <item>
-                <widget class="QPushButton" name="settings_save">
+                <widget class="QPushButton" name="button_settings_save">
                  <property name="styleSheet">
                   <string notr="true">QPushButton:hover {
 background-color: rgba(255, 255, 255, 40)
@@ -409,7 +409,7 @@ background-color: rgba(255, 255, 255, 70)
                 </widget>
                </item>
                <item>
-                <widget class="QPushButton" name="settings_cancel">
+                <widget class="QPushButton" name="button_settings_cancel">
                  <property name="styleSheet">
                   <string notr="true">QPushButton:hover {
 background-color: rgba(255, 255, 255, 40)

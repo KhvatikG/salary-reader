@@ -17,9 +17,9 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QFrame,
     QHBoxLayout, QHeaderView, QLabel, QLayout,
-    QLineEdit, QListWidget, QListWidgetItem, QMainWindow,
-    QPushButton, QSizePolicy, QSpacerItem, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget)
+    QLineEdit, QListView, QListWidget, QListWidgetItem,
+    QMainWindow, QPushButton, QSizePolicy, QSpacerItem,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -88,8 +88,14 @@ class Ui_MainWindow(object):
         self.roles_layout.addWidget(self.roles_label)
 
         self.roles_list = QListWidget(self.roles_frame)
+        QListWidgetItem(self.roles_list)
+        QListWidgetItem(self.roles_list)
         self.roles_list.setObjectName(u"roles_list")
+        self.roles_list.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
         self.roles_list.setStyleSheet(u"background-color: rgba(255, 255, 255, 0)")
+        self.roles_list.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.roles_list.setMovement(QListView.Movement.Free)
+        self.roles_list.setSortingEnabled(False)
 
         self.roles_layout.addWidget(self.roles_list)
 
@@ -247,9 +253,9 @@ class Ui_MainWindow(object):
 
         self.SettingsButtons.addItem(self.horizontalSpacer)
 
-        self.settings_save = QPushButton(self.settings_frame)
-        self.settings_save.setObjectName(u"settings_save")
-        self.settings_save.setStyleSheet(u"QPushButton:hover {\n"
+        self.button_settings_save = QPushButton(self.settings_frame)
+        self.button_settings_save.setObjectName(u"button_settings_save")
+        self.button_settings_save.setStyleSheet(u"QPushButton:hover {\n"
 "background-color: rgba(255, 255, 255, 40)\n"
 "}\n"
 "\n"
@@ -257,11 +263,11 @@ class Ui_MainWindow(object):
 "background-color: rgba(255, 255, 255, 70)\n"
 "}")
 
-        self.SettingsButtons.addWidget(self.settings_save)
+        self.SettingsButtons.addWidget(self.button_settings_save)
 
-        self.settings_cancel = QPushButton(self.settings_frame)
-        self.settings_cancel.setObjectName(u"settings_cancel")
-        self.settings_cancel.setStyleSheet(u"QPushButton:hover {\n"
+        self.button_settings_cancel = QPushButton(self.settings_frame)
+        self.button_settings_cancel.setObjectName(u"button_settings_cancel")
+        self.button_settings_cancel.setStyleSheet(u"QPushButton:hover {\n"
 "background-color: rgba(255, 255, 255, 40)\n"
 "}\n"
 "\n"
@@ -269,7 +275,7 @@ class Ui_MainWindow(object):
 "background-color: rgba(255, 255, 255, 70)\n"
 "}")
 
-        self.SettingsButtons.addWidget(self.settings_cancel)
+        self.SettingsButtons.addWidget(self.button_settings_cancel)
 
         self.SettingsButtons.setStretch(0, 3)
         self.SettingsButtons.setStretch(1, 3)
@@ -409,6 +415,9 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
 
+        self.roles_list.setCurrentRow(-1)
+
+
         QMetaObject.connectSlotsByName(MainWindow)
     # setupUi
 
@@ -419,6 +428,15 @@ class Ui_MainWindow(object):
         self.department.setItemText(2, QCoreApplication.translate("MainWindow", u"\u041a\u0420\u0423\u0413", None))
 
         self.roles_label.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b \u043c\u043e\u0442\u0438\u0432\u0430\u0446\u0438\u0438:", None))
+
+        __sortingEnabled = self.roles_list.isSortingEnabled()
+        self.roles_list.setSortingEnabled(False)
+        ___qlistwidgetitem = self.roles_list.item(0)
+        ___qlistwidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u041d\u043e\u0432\u044b\u0439 \u044d\u043b\u0435\u043c\u0435\u043d\u0442", None));
+        ___qlistwidgetitem1 = self.roles_list.item(1)
+        ___qlistwidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u041d\u043e\u0432\u044b\u0439 \u044d\u043b\u0435\u043c\u0435\u043d\u0442", None));
+        self.roles_list.setSortingEnabled(__sortingEnabled)
+
         self.roles_add_button.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.roles_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.roles_delete.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c", None))
@@ -428,7 +446,7 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem1 = self.table_motivate_settings.horizontalHeaderItem(1)
         ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0443\u043c\u043c\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u0430\u0436\u0434\u0435\u043d\u0438\u044f(\u0440\u0443\u0431.)", None));
 
-        __sortingEnabled = self.table_motivate_settings.isSortingEnabled()
+        __sortingEnabled1 = self.table_motivate_settings.isSortingEnabled()
         self.table_motivate_settings.setSortingEnabled(False)
         ___qtablewidgetitem2 = self.table_motivate_settings.item(0, 0)
         ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"323123", None));
@@ -442,12 +460,12 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"13321", None));
         ___qtablewidgetitem7 = self.table_motivate_settings.item(2, 1)
         ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"213", None));
-        self.table_motivate_settings.setSortingEnabled(__sortingEnabled)
+        self.table_motivate_settings.setSortingEnabled(__sortingEnabled1)
 
         self.button_add_threshhold.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.button_delete_threshold.setText(QCoreApplication.translate("MainWindow", u"-", None))
-        self.settings_save.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", None))
-        self.settings_cancel.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c", None))
+        self.button_settings_save.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", None))
+        self.button_settings_cancel.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c", None))
         self.employees_label.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0430\u0431\u043e\u0442\u043d\u0438\u043a\u0438 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0435:", None))
         self.employees_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442:", None))
