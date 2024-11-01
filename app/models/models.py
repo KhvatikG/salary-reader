@@ -82,7 +82,7 @@ class MotivationProgram(Base):
 
     # Один-ко-многим связь с порогами мотивации
     thresholds = relationship(
-                            "MotivateThreshold",
+                            "MotivationThreshold",
                             back_populates="motivation_program",
                             cascade="all, delete-orphan"
     )
@@ -94,7 +94,7 @@ class MotivationProgram(Base):
     )
 
 
-class MotivateThreshold(Base):
+class MotivationThreshold(Base):
     """Таблица, представляющая уровни порогов мотивации.
 
    Хранит условия вознаграждения, такие как требуемый доход
