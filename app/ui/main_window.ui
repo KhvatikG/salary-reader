@@ -129,16 +129,6 @@ border: none;</string>
                <property name="sortingEnabled">
                 <bool>false</bool>
                </property>
-               <item>
-                <property name="text">
-                 <string>Новый элемент</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Новый элемент</string>
-                </property>
-               </item>
               </widget>
              </item>
              <item>
@@ -265,6 +255,9 @@ border: none;</string>
                <property name="sortingEnabled">
                 <bool>true</bool>
                </property>
+               <property name="rowCount">
+                <number>0</number>
+               </property>
                <attribute name="horizontalHeaderCascadingSectionResizes">
                 <bool>true</bool>
                </attribute>
@@ -289,60 +282,6 @@ border: none;</string>
                <attribute name="verticalHeaderCascadingSectionResizes">
                 <bool>false</bool>
                </attribute>
-               <row/>
-               <row/>
-               <row/>
-               <column>
-                <property name="text">
-                 <string>Выручка в руб.</string>
-                </property>
-                <property name="textAlignment">
-                 <set>AlignLeading|AlignVCenter</set>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Сумма вознаграждения(руб.)</string>
-                </property>
-                <property name="font">
-                 <font>
-                  <family>Segoe UI</family>
-                 </font>
-                </property>
-                <property name="textAlignment">
-                 <set>AlignLeading|AlignVCenter</set>
-                </property>
-               </column>
-               <item row="0" column="0">
-                <property name="text">
-                 <string>323123</string>
-                </property>
-               </item>
-               <item row="0" column="1">
-                <property name="text">
-                 <string>123</string>
-                </property>
-               </item>
-               <item row="1" column="0">
-                <property name="text">
-                 <string>1231</string>
-                </property>
-               </item>
-               <item row="1" column="1">
-                <property name="text">
-                 <string>123</string>
-                </property>
-               </item>
-               <item row="2" column="0">
-                <property name="text">
-                 <string>13321</string>
-                </property>
-               </item>
-               <item row="2" column="1">
-                <property name="text">
-                 <string>213</string>
-                </property>
-               </item>
               </widget>
              </item>
              <item>

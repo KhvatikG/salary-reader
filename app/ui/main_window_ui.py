@@ -88,8 +88,6 @@ class Ui_MainWindow(object):
         self.roles_layout.addWidget(self.roles_label)
 
         self.roles_list = QListWidget(self.roles_frame)
-        QListWidgetItem(self.roles_list)
-        QListWidgetItem(self.roles_list)
         self.roles_list.setObjectName(u"roles_list")
         self.roles_list.setContextMenuPolicy(Qt.ContextMenuPolicy.DefaultContextMenu)
         self.roles_list.setStyleSheet(u"background-color: rgba(255, 255, 255, 0)")
@@ -172,36 +170,11 @@ class Ui_MainWindow(object):
         self.MainSettings.addWidget(self.label_motivate_settings)
 
         self.table_motivate_settings = QTableWidget(self.settings_frame)
-        if (self.table_motivate_settings.columnCount() < 2):
-            self.table_motivate_settings.setColumnCount(2)
-        __qtablewidgetitem = QTableWidgetItem()
-        __qtablewidgetitem.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter);
-        self.table_motivate_settings.setHorizontalHeaderItem(0, __qtablewidgetitem)
-        font = QFont()
-        font.setFamilies([u"Segoe UI"])
-        __qtablewidgetitem1 = QTableWidgetItem()
-        __qtablewidgetitem1.setTextAlignment(Qt.AlignLeading|Qt.AlignVCenter);
-        __qtablewidgetitem1.setFont(font);
-        self.table_motivate_settings.setHorizontalHeaderItem(1, __qtablewidgetitem1)
-        if (self.table_motivate_settings.rowCount() < 3):
-            self.table_motivate_settings.setRowCount(3)
-        __qtablewidgetitem2 = QTableWidgetItem()
-        self.table_motivate_settings.setItem(0, 0, __qtablewidgetitem2)
-        __qtablewidgetitem3 = QTableWidgetItem()
-        self.table_motivate_settings.setItem(0, 1, __qtablewidgetitem3)
-        __qtablewidgetitem4 = QTableWidgetItem()
-        self.table_motivate_settings.setItem(1, 0, __qtablewidgetitem4)
-        __qtablewidgetitem5 = QTableWidgetItem()
-        self.table_motivate_settings.setItem(1, 1, __qtablewidgetitem5)
-        __qtablewidgetitem6 = QTableWidgetItem()
-        self.table_motivate_settings.setItem(2, 0, __qtablewidgetitem6)
-        __qtablewidgetitem7 = QTableWidgetItem()
-        self.table_motivate_settings.setItem(2, 1, __qtablewidgetitem7)
         self.table_motivate_settings.setObjectName(u"table_motivate_settings")
-        font1 = QFont()
-        font1.setBold(True)
-        font1.setItalic(False)
-        self.table_motivate_settings.setFont(font1)
+        font = QFont()
+        font.setBold(True)
+        font.setItalic(False)
+        self.table_motivate_settings.setFont(font)
         self.table_motivate_settings.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self.table_motivate_settings.setAutoFillBackground(False)
         self.table_motivate_settings.setStyleSheet(u"QTableWidget {\n"
@@ -212,6 +185,7 @@ class Ui_MainWindow(object):
 "    }")
         self.table_motivate_settings.setFrameShape(QFrame.Shape.StyledPanel)
         self.table_motivate_settings.setSortingEnabled(True)
+        self.table_motivate_settings.setRowCount(0)
         self.table_motivate_settings.horizontalHeader().setCascadingSectionResizes(True)
         self.table_motivate_settings.horizontalHeader().setMinimumSectionSize(170)
         self.table_motivate_settings.horizontalHeader().setDefaultSectionSize(170)
@@ -428,40 +402,10 @@ class Ui_MainWindow(object):
         self.department.setItemText(2, QCoreApplication.translate("MainWindow", u"\u041a\u0420\u0423\u0413", None))
 
         self.roles_label.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b \u043c\u043e\u0442\u0438\u0432\u0430\u0446\u0438\u0438:", None))
-
-        __sortingEnabled = self.roles_list.isSortingEnabled()
-        self.roles_list.setSortingEnabled(False)
-        ___qlistwidgetitem = self.roles_list.item(0)
-        ___qlistwidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u041d\u043e\u0432\u044b\u0439 \u044d\u043b\u0435\u043c\u0435\u043d\u0442", None));
-        ___qlistwidgetitem1 = self.roles_list.item(1)
-        ___qlistwidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u041d\u043e\u0432\u044b\u0439 \u044d\u043b\u0435\u043c\u0435\u043d\u0442", None));
-        self.roles_list.setSortingEnabled(__sortingEnabled)
-
         self.roles_add_button.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.roles_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.roles_delete.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c", None))
         self.label_motivate_settings.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u0434\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438:", None))
-        ___qtablewidgetitem = self.table_motivate_settings.horizontalHeaderItem(0)
-        ___qtablewidgetitem.setText(QCoreApplication.translate("MainWindow", u"\u0412\u044b\u0440\u0443\u0447\u043a\u0430 \u0432 \u0440\u0443\u0431.", None));
-        ___qtablewidgetitem1 = self.table_motivate_settings.horizontalHeaderItem(1)
-        ___qtablewidgetitem1.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0443\u043c\u043c\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u0430\u0436\u0434\u0435\u043d\u0438\u044f(\u0440\u0443\u0431.)", None));
-
-        __sortingEnabled1 = self.table_motivate_settings.isSortingEnabled()
-        self.table_motivate_settings.setSortingEnabled(False)
-        ___qtablewidgetitem2 = self.table_motivate_settings.item(0, 0)
-        ___qtablewidgetitem2.setText(QCoreApplication.translate("MainWindow", u"323123", None));
-        ___qtablewidgetitem3 = self.table_motivate_settings.item(0, 1)
-        ___qtablewidgetitem3.setText(QCoreApplication.translate("MainWindow", u"123", None));
-        ___qtablewidgetitem4 = self.table_motivate_settings.item(1, 0)
-        ___qtablewidgetitem4.setText(QCoreApplication.translate("MainWindow", u"1231", None));
-        ___qtablewidgetitem5 = self.table_motivate_settings.item(1, 1)
-        ___qtablewidgetitem5.setText(QCoreApplication.translate("MainWindow", u"123", None));
-        ___qtablewidgetitem6 = self.table_motivate_settings.item(2, 0)
-        ___qtablewidgetitem6.setText(QCoreApplication.translate("MainWindow", u"13321", None));
-        ___qtablewidgetitem7 = self.table_motivate_settings.item(2, 1)
-        ___qtablewidgetitem7.setText(QCoreApplication.translate("MainWindow", u"213", None));
-        self.table_motivate_settings.setSortingEnabled(__sortingEnabled1)
-
         self.button_add_threshhold.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.button_delete_threshold.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.button_settings_save.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", None))

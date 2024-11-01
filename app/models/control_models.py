@@ -69,6 +69,7 @@ def assign_motivation_program(session: Session, employee_id: int, motivation_pro
     # Сохраняем изменения
     session.commit()
 
+
 def delete_motivation_program(name):
     """
     Удаляет программу мотивации и все связанные с ней пороги.
@@ -112,3 +113,13 @@ def get_current_roles(department_name: str) -> list[MotivationProgram]:
 
     return roles
 
+
+def thresholds_clear(program: MotivationProgram, session: Session):
+    """
+    Удаляет пороги мотивации для указанной программы.
+    :param program: Программа мотивации, для которой нужно удалить пороги.
+    :return:
+    """
+    for threshold in program.thresholds:
+        session.delete(threshold)
+    session.commit()

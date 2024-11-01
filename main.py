@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledIte
     QTableWidgetItem, QListWidgetItem
 
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
-from app.models.control_models import delete_motivation_program, get_current_roles
+from app.models.control_models import delete_motivation_program, get_current_roles, thresholds_clear
 from app.ui.main_window_ui import Ui_MainWindow
 from app.helpers.helpers import get_icon_from_svg
 from app.db import get_session
@@ -29,7 +29,7 @@ class NumericDelegate(QStyledItemDelegate):
 class SalaryReader(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.changes_made = False  # При изменении данных в таблице, флаг становится True, при сохранении - False
+        self.changes_made = False  # При изменении данных в таблице, флаг становится True, при сохранении/отмене - False
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -43,21 +43,27 @@ class SalaryReader(QMainWindow):
         # Программы мотивации(Список)
         self.set_current_roles()  # На старте выводим список программ выбранного отдела
         self.ui.roles_list.currentItemChanged.connect(  # Заполняем таблицу при выборе роли
-                                        self.fill_role_settings_table
+            self.fill_role_settings_table
         )
         self.ui.roles_list.itemChanged.connect(self.update_role_in_db)
-        self.ui.roles_list.setCurrentRow(0)  # По умолчанию выбираем первый элемент списка
         self.ui.roles_add_button.clicked.connect(self.add_role)
         self.ui.roles_delete.clicked.connect(self.delete_role)
 
         # Таблица настройки мотивации
-        self.ui.table_motivate_settings.setColumnCount(2)
-        self.ui.table_motivate_settings.setHorizontalHeaderLabels(["Выручка в руб.", "Сумма вознаграждения(руб.)"])
-        # Установка валидации ввода для таблицы настройки мотивации
+        self.ui.table_motivate_settings.setColumnCount(3)
+        self.ui.table_motivate_settings.setHorizontalHeaderLabels(
+            ["Выручка в руб.", "Сумма вознаграждения(руб.)", "no_role"]
+        )
+        # Скрываем третий столбец, он для технических нужд:
+        # self.ui.table_motivate_settings.setColumnHidden(2, False)
+        # Установка валидации ввода для таблицы настройки мотивации:
         numeric_delegate = NumericDelegate(self.ui.table_motivate_settings)
         self.ui.table_motivate_settings.setItemDelegateForColumn(0, numeric_delegate)
         self.ui.table_motivate_settings.setItemDelegateForColumn(1, numeric_delegate)
         self.ui.table_motivate_settings.itemChanged.connect(self.on_table_item_changes)
+        # Выбираем первую роль в списке и заполняем таблицу на открытии
+        self.ui.roles_list.setCurrentRow(0)
+        self.fill_role_settings_table()
 
         # Подключаем кнопки добавления строк в таблицу настройки мотивации
         self.ui.button_add_threshhold.clicked.connect(self.add_row)
@@ -93,6 +99,7 @@ class SalaryReader(QMainWindow):
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
             item.setData(Qt.ItemDataRole.UserRole, role.name)
             self.ui.roles_list.addItem(item)
+        self.ui.roles_list.setCurrentRow(0)  # По умолчанию выбираем первый элемент списка
 
     def add_role(self) -> None:
         """
@@ -187,9 +194,16 @@ class SalaryReader(QMainWindow):
         :return:
         """
         # Если выбрана программа добавляем строку
-        if self.ui.roles_list.currentItem():
+        if curent_role := self.ui.roles_list.currentItem():
             current_row_count = self.ui.table_motivate_settings.rowCount()
             self.ui.table_motivate_settings.insertRow(current_row_count)
+            self.ui.table_motivate_settings.setItem(current_row_count, 0, QTableWidgetItem("0"))
+            self.ui.table_motivate_settings.setItem(current_row_count, 1, QTableWidgetItem("0"))
+            # Добавляем в header информацию о роли к которой привязана таблица
+            # (3 столбец скрыт и используется длля хнанения роли)
+            self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(curent_role.text())
+
+
         else:
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
@@ -208,6 +222,7 @@ class SalaryReader(QMainWindow):
         Удаляет выбранную строку в таблице.
         :return:
         """
+        self.changes_made = True
         selected_row = self.ui.table_motivate_settings.currentRow()
         if selected_row >= 0:
             self.ui.table_motivate_settings.removeRow(selected_row)
@@ -227,39 +242,55 @@ class SalaryReader(QMainWindow):
         """
         Функция заполнения таблицы настроек мотивации.
         Заполняет таблицу настройками мотивации для выбранной роли.
-        :return:
         """
         # Проверяем есть ли несохраненные изменения
         if self.changes_made:
+            table_role = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
-                "Пожалуйста, сохраните изменения в таблице настроек мотивации.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No | QMessageBox.StandardButton.Cancel
+                f"Есть не сохраненные изменения программы мотивации для {table_role}.",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                self
             )
+
+            button_yes = msg_box.button(QMessageBox.StandardButton.Yes)
+            button_no = msg_box.button(QMessageBox.StandardButton.No)
+            #button_cancel = msg_box.button(QMessageBox.StandardButton.Cancel)
+            button_yes.setText("Сохранить")
+            button_no.setText("Отменить")
+            #button_cancel.setText("Вернуться к редактированию программы мотивации")
 
             msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
             reply = msg_box.exec()
             if reply == QMessageBox.StandardButton.Yes:
                 self.save_table_data_to_db()
-            elif reply == QMessageBox.StandardButton.Cancel:
-                return
-
+            elif reply == QMessageBox.StandardButton.No:
+                self.changes_made = False
+        # Блокируем сигналы чтобы не перехватывать изменения в таблице
+        self.ui.table_motivate_settings.blockSignals(True)
         if current_role := self.ui.roles_list.currentItem():
+            print(f"Curent role :{current_role}")
             current_role_name: str = current_role.text()
         else:
-            header = [self.ui.table_motivate_settings.horizontalHeaderItem(0).text(),
-                      self.ui.table_motivate_settings.horizontalHeaderItem(1).text()]
-            self.ui.table_motivate_settings.clear()
-            self.ui.table_motivate_settings.setHorizontalHeaderLabels(header)
+            print(f"Cuerent role не указана, отчищаем таблицу")
+            # Отчищаем таблицу
+            self.ui.table_motivate_settings.setRowCount(0)
+            # Разблокируем сигналы
+            self.ui.table_motivate_settings.blockSignals(False)
             return
         with get_session() as session:
+            self.ui.table_motivate_settings.setRowCount(0)
+            self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_name)
             role: MotivationProgram = session.query(MotivationProgram).filter(
                 MotivationProgram.name == current_role_name).first()
             self.ui.table_motivate_settings.setRowCount(len(role.thresholds))
             for i, threshold in enumerate(role.thresholds):
                 self.ui.table_motivate_settings.setItem(i, 0, QTableWidgetItem(str(threshold.revenue_threshold)))
                 self.ui.table_motivate_settings.setItem(i, 1, QTableWidgetItem(str(threshold.salary)))
+            # Разблокируем сигналы
+            self.ui.table_motivate_settings.blockSignals(False)
+
 
     def save_table_data_to_db(self):
         """
@@ -268,13 +299,15 @@ class SalaryReader(QMainWindow):
         И создает новую если нет
         :return:
         """
-        if current_role := self.ui.roles_list.currentItem():
-            current_role_name: str = current_role.text()
-        else:
+        self.changes_made = False
+        # Извлекаем заложенное в заголовок третьего столбца имя роли к которой привязана таблица
+        current_role_name = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
+        # Если заголовок третьего столбца нетронут, значит строки еще не добавлялись
+        if current_role_name == 'no_role':
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
-                "Ни одна программа не была выбрана, чтобы настроить мотивацию, сначала выберите программу",
+                "Таблица пуста и не привязана ни к одной роли",
                 QMessageBox.StandardButton.Ok,
                 self
             )
@@ -286,29 +319,40 @@ class SalaryReader(QMainWindow):
         row_count = self.ui.table_motivate_settings.rowCount()
 
         with get_session() as session:
-            for row in range(row_count):
-                # Поскольку, у нас есть две колонки: revenue_threshold и salary
-                revenue_threshold_item = self.ui.table_motivate_settings.item(row, 0)
-                salary_item = self.ui.table_motivate_settings.item(row, 1)
+            # Получаем программу
+            current_motivation_program = session.query(MotivationProgram).filter(
+                MotivationProgram.name == current_role_name).first()
+            # Отчищаем пороги
+            thresholds_clear(current_motivation_program, session)
+            if row_count == 0:  # Если таблица пуста (уже привязана, но отчищена)
+                session.commit()  # То сохраняем без порогов и выходим
+                return
 
-                thresholds_record = session.query(
-                    MotivationThreshold).join(MotivationProgram).filter(
-                    MotivationProgram.name == current_role_name,
-                    MotivationThreshold.revenue_threshold == int(revenue_threshold_item.text())
-                ).first()
+            else:  # Если таблица не пуста
+                for row in range(row_count):
+                    print(f"Строка {row}")
+                    # Поскольку, у нас есть две колонки: revenue_threshold и salary
+                    revenue_threshold_item = self.ui.table_motivate_settings.item(row, 0)
+                    salary_item = self.ui.table_motivate_settings.item(row, 1)
 
-                if thresholds_record:
-                    thresholds_record.salary = int(salary_item.text())
-                else:
-                    current_motivation_program = session.query(MotivationProgram).filter(
-                        MotivationProgram.name == current_role_name).first()
+                    thresholds_record = session.query(
+                        MotivationThreshold).join(MotivationProgram).filter(
+                        MotivationProgram.name == current_role_name,
+                        MotivationThreshold.revenue_threshold == int(revenue_threshold_item.text())
+                    ).first()
 
-                    session.add(MotivationThreshold(revenue_threshold=int(revenue_threshold_item.text()),
-                                                   salary=int(salary_item.text()),
-                                                   motivation_program=current_motivation_program))
+                    if thresholds_record:
+                        print(f"Найден порог {thresholds_record}")
+                        thresholds_record.salary = int(salary_item.text())
+                    else:
+                        print("Порог не найден")
+                        # Сохраняем измененные
+                        session.add(MotivationThreshold(revenue_threshold=int(revenue_threshold_item.text()),
+                                                        salary=int(salary_item.text()),
+                                                        motivation_program=current_motivation_program))
                 session.commit()
 
-    def on_table_item_changes(self):
+    def on_table_item_changes(self, item):
         """
         Функция для отслеживания несохраненных изменений в таблице мотивации.
         Фиксирует факт несохраненных изменений.
