@@ -1,15 +1,14 @@
 import sys
 
-from PySide6.QtCore import Qt, QSize
-from PySide6.QtGui import QPalette, QColor, QIcon, QPixmap, QPainter, QIntValidator
-from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QComboBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidget, QAbstractItemView, QListWidgetItem
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPalette, QColor, QIntValidator
+from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
+    QTableWidgetItem, QListWidgetItem
 
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
 from app.models.control_models import delete_motivation_program, get_current_roles
 from app.ui.main_window_ui import Ui_MainWindow
-from app.helpers.helpers import fill_employees_table, get_icon_from_svg
+from app.helpers.helpers import get_icon_from_svg
 from app.db import get_session
 from app.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 
@@ -36,10 +35,12 @@ class SalaryReader(QMainWindow):
         # Выпадающий список выбора отдела
         self.ui.department.clear()  # Удаляем предустановленные в дизайнере отделы(Удалить в дизайнере)
         self.ui.department.addItems([department.name for department in departments])
-        self.ui.department.currentIndexChanged.connect(self.set_current_roles)
+        self.ui.department.currentIndexChanged.connect(  # При выборе отдела выводим список его программ
+            self.set_current_roles
+        )
 
         # Программы мотивации(Список)
-        self.set_current_roles()
+        self.set_current_roles()  # На старте выводим список программ выбранного отдела
         self.ui.roles_list.currentItemChanged.connect(  # Заполняем таблицу при выборе роли
                                         self.fill_role_settings_table
         )
@@ -183,8 +184,21 @@ class SalaryReader(QMainWindow):
         Добавляет новую строку в таблицу.
         :return:
         """
-        current_row_count = self.ui.table_motivate_settings.rowCount()
-        self.ui.table_motivate_settings.insertRow(current_row_count)
+        # Если выбрана программа добавляем строку
+        if self.ui.roles_list.currentItem():
+            current_row_count = self.ui.table_motivate_settings.rowCount()
+            self.ui.table_motivate_settings.insertRow(current_row_count)
+        else:
+            msg_box = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "Предупреждение",
+                "Пожалуйста, выберите программу к которой хотите добавить мотивацию.",
+                QMessageBox.StandardButton.Ok,
+                self
+            )
+
+            msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
+            msg_box.exec()
 
     def remove_selected_row(self):
         """
@@ -216,7 +230,10 @@ class SalaryReader(QMainWindow):
         if current_role := self.ui.roles_list.currentItem():
             current_role_name: str = current_role.text()
         else:
+            header = [self.ui.table_motivate_settings.horizontalHeaderItem(0).text(),
+                      self.ui.table_motivate_settings.horizontalHeaderItem(1).text()]
             self.ui.table_motivate_settings.clear()
+            self.ui.table_motivate_settings.setHorizontalHeaderLabels(header)
             return
         with get_session() as session:
             role: MotivationProgram = session.query(MotivationProgram).filter(
