@@ -184,6 +184,8 @@ class SalaryReader(QMainWindow):
                     {"name": new_name})
                 session.commit()
                 print(f"Изменение названия роли с '{original_name}' на '{new_name}' выполнено!")
+                # Перерисовываем роли из БД чтобы отразить актуальное состояние
+                self.set_current_roles()
         else:
             print("Изменение названия роли отменено!")
 
