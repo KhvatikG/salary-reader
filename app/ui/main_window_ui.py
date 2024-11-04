@@ -178,10 +178,10 @@ class Ui_MainWindow(object):
         self.table_motivate_settings.setLayoutDirection(Qt.LayoutDirection.LeftToRight)
         self.table_motivate_settings.setAutoFillBackground(False)
         self.table_motivate_settings.setStyleSheet(u"QTableWidget {\n"
-"        gridline-color: gray;  /* \u0423\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0432\u0435\u0442\u0430 \u043b\u0438\u043d\u0438\u0439 */\n"
+"        gridline-color: rgba(255, 255, 255, 70);\n"
 "    }\n"
 "    QHeaderView::section {\n"
-"        padding: 3px;  /* \u0423\u0431\u0435\u0434\u0438\u0442\u0435\u0441\u044c, \u0447\u0442\u043e \u043d\u0435\u0442 \u043b\u0438\u0448\u043d\u0435\u0433\u043e \u043e\u0442\u0441\u0442\u0443\u043f\u0430 */\n"
+"        padding: 3px;  \n"
 "    }")
         self.table_motivate_settings.setFrameShape(QFrame.Shape.StyledPanel)
         self.table_motivate_settings.setSortingEnabled(True)

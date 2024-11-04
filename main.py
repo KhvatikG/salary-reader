@@ -3,19 +3,19 @@ import sys
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPalette, QColor, QIntValidator
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidgetItem
+    QTableWidgetItem, QListWidgetItem, QStyle
 
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
-from app.models.control_models import delete_motivation_program, get_current_roles, thresholds_clear
+from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear
 from app.ui.main_window_ui import Ui_MainWindow
-from app.helpers.helpers import get_icon_from_svg
+from app.helpers.helpers import get_icon_from_svg, set_departments, get_department_code
 from app.db import get_session
 from app.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 
 with get_session() as session:
-    employees = session.query(Employee).all()
-    roles = session.query(MotivationProgram).all()
-    departments = session.query(Department).all()
+    EMPLOYEES_INIT = session.query(Employee).all()
+    ROLES_INIT = session.query(MotivationProgram).all()
+    DEPARTMENTS_INIT = session.query(Department).all()
 
 
 class NumericDelegate(QStyledItemDelegate):
@@ -34,8 +34,7 @@ class SalaryReader(QMainWindow):
         self.ui.setupUi(self)
 
         # Выпадающий список выбора отдела
-        self.ui.department.clear()  # Удаляем предустановленные в дизайнере отделы(Удалить в дизайнере)
-        self.ui.department.addItems([department.name for department in departments])
+        set_departments(self.ui.department, DEPARTMENTS_INIT)
         self.ui.department.currentIndexChanged.connect(  # При выборе отдела выводим список его программ
             self.set_current_roles
         )
@@ -45,6 +44,7 @@ class SalaryReader(QMainWindow):
         self.ui.roles_list.currentItemChanged.connect(  # Заполняем таблицу при выборе роли
             self.fill_role_settings_table
         )
+
         self.ui.roles_list.itemChanged.connect(self.update_role_in_db)
         self.ui.roles_add_button.clicked.connect(self.add_role)
         self.ui.roles_delete.clicked.connect(self.delete_role)
@@ -55,7 +55,7 @@ class SalaryReader(QMainWindow):
             ["Выручка в руб.", "Сумма вознаграждения(руб.)", "no_role"]
         )
         # Скрываем третий столбец, он для технических нужд:
-        # self.ui.table_motivate_settings.setColumnHidden(2, False)
+        self.ui.table_motivate_settings.setColumnHidden(2, True)
         # Установка валидации ввода для таблицы настройки мотивации:
         numeric_delegate = NumericDelegate(self.ui.table_motivate_settings)
         self.ui.table_motivate_settings.setItemDelegateForColumn(0, numeric_delegate)
@@ -83,21 +83,23 @@ class SalaryReader(QMainWindow):
     def set_current_roles(self):
         """
         Функция колбэк для заполнения списка ролей.
-        Вызывается при изменении списка отделов.
+        Вызывается при изменении индекса выбранного элемента списка отделов.(Выборе отдела, отличного от текущего)
         Также применяется когда нужно заполнить список ролей(программ мотивации)
         в соответствии с выбранным в выпадающем списке отделом.
         """
         # Отчищаем список ролей
         self.ui.roles_list.clear()
-        # Получаем название выбранного отдела
-        department_name = self.ui.department.currentText()
-        # Получаем роли привязанные к выбранному отделу
-        current_roles = get_current_roles(department_name)
+        # Получаем код выбранного отдела
+        department_code = get_department_code(self.ui.department)
+        # Получаем роли привязанные к выбранному отделу по коду отдела
+        current_roles = get_current_roles_by_department_code(department_code)
         # Заполняем список ролей
         for role in current_roles:
             item = QListWidgetItem(role.name)
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsEditable)
-            item.setData(Qt.ItemDataRole.UserRole, role.name)
+            item.setData(Qt.ItemDataRole.UserRole, {
+                "role_id": role.id,
+            })
             self.ui.roles_list.addItem(item)
         self.ui.roles_list.setCurrentRow(0)  # По умолчанию выбираем первый элемент списка
 
@@ -106,51 +108,67 @@ class SalaryReader(QMainWindow):
         Функция колбэк для кнопки добавления роли(Программы мотивации).
         Добавляет новую роль если такой нет.
         """
-        department_name = self.ui.department.currentText()
-        if department_name:
-            with get_session() as session:
-                department_code = session.query(Department).filter(Department.name == department_name).first().code
-        new_role = self.ui.roles_add_line.text()
-        if new_role:
-            with get_session() as session:
-                roles = session.query(MotivationProgram).all()
-                if new_role not in [role.name for role in roles]:
-                    session.add(MotivationProgram(name=new_role, department_code=department_code))
-                    session.commit()
-                self.ui.roles_add_line.clear()
-                self.ui.roles_add_line.setFocus()
-                self.set_current_roles()
+        try:
+            current_department_code = get_department_code(self.ui.department)
+        except Exception as e:
+            print(f"[add_role] Ошибка при получении кода отдела {e}")
+            # Если почему-то не выбран отдел выбрасываем сообщение
+            confirm_dialog = QMessageBox(self)
+            confirm_dialog.setWindowTitle("Ошибка, не выбран отдел")
+            confirm_dialog.setText("Выберите отдел")
+            confirm_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+            confirm_dialog.exec()
+            return
+
+        new_role_name = self.ui.roles_add_line.text()
+        if not new_role_name:
+            return
+
+        with get_session() as session:
+            # Получаем роли привязанные к выбранному отделу по коду отдела
+            current_roles = get_current_roles_by_department_code(current_department_code)
+
+            # Если на данном отделе еще нет роли с таким названием
+            if new_role_name not in [role.name for role in current_roles]:
+                motivation_program = MotivationProgram(name=new_role_name, department_code=current_department_code)
+                session.add(motivation_program)
+                session.commit()
+            else:
+                confirm_dialog = QMessageBox(self)
+                confirm_dialog.setWindowTitle("Ошибка, роль уже существует")
+                confirm_dialog.setText(f"Программа с именем '{new_role_name}' уже существует")
+                confirm_dialog.setStandardButtons(QMessageBox.StandardButton.Ok)
+                confirm_dialog.exec()
+            self.ui.roles_add_line.clear()
+            self.ui.roles_add_line.setFocus()
+            self.set_current_roles()
 
     def delete_role(self) -> None:
-        selected_item = self.ui.roles_list.currentItem()
+        current_role = self.ui.roles_list.currentItem()
 
-        if selected_item:
-            item_text = selected_item.text()
+        if current_role:
+            current_role_data = current_role.data(Qt.ItemDataRole.UserRole)
+            role_id = current_role_data["role_id"]
+            item_text = current_role.text()
 
             # Создание диалога подтверждения
             confirm_dialog = QMessageBox(self)
             confirm_dialog.setWindowTitle("Подтверждение")
-            confirm_dialog.setText(f"Вы уверены, что хотите удалить '{item_text}'?")
+            confirm_dialog.setText(f"Вы уверены, что хотите удалить программу'{item_text}'?")
             confirm_dialog.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
             button_yes = confirm_dialog.button(QMessageBox.StandardButton.Yes)
             button_no = confirm_dialog.button(QMessageBox.StandardButton.No)
             button_yes.setText("Удалить")
             button_no.setText("Отмена")
 
-            # Установка стиля с помощью QPalette
-            palette = confirm_dialog.palette()
-            palette.setColor(QPalette.ColorRole.Window, QColor(0, 0, 0, 0))  # Прозрачный фон
-            palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))  # Белый текст
-            confirm_dialog.setPalette(palette)
-
-            # Установка стиля с помощью QStyleSheet
+            # Установка стиля
             confirm_dialog.setStyleSheet(CONFIRM_DIALOG_STYLE)
 
             reply = confirm_dialog.exec()
 
             if reply == QMessageBox.StandardButton.Yes:
                 # Выполняем удаление
-                delete_motivation_program(name=item_text)
+                delete_motivation_program(role_id)
                 # Обновляем список ролей(Программ мотивации) в UI
                 self.set_current_roles()
 
@@ -162,7 +180,7 @@ class SalaryReader(QMainWindow):
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
-                "Выберите элемент для удаления!",
+                "Выберите программу для удаления!",
                 QMessageBox.StandardButton.Ok,
                 self
             )
@@ -172,39 +190,50 @@ class SalaryReader(QMainWindow):
 
     def update_role_in_db(self, item):
         """
-        Функция колбэк для сохранения изменений в таблице настроек мотивации.
-        Сохраняет изменения в таблице настроек мотивации в БД.
+        Функция колбэк для сохранения изменений роли (Программы мотивации).
+        Сохраняет изменения роли в БД.
         """
         new_name = item.text()
-        original_name = item.data(Qt.ItemDataRole.UserRole)
+        current_role_id = item.data(Qt.ItemDataRole.UserRole)["role_id"]
 
-        if new_name != original_name:
-            with get_session() as session:
-                session.query(MotivationProgram).filter(MotivationProgram.name == original_name).update(
-                    {"name": new_name})
+        with get_session() as session:
+            current_roles = get_current_roles_by_department_code(self.ui.department.currentData()["department_code"])
+            if new_name not in [role.name for role in current_roles]:
+                session.query(MotivationProgram).filter(MotivationProgram.id == current_role_id
+                                                        ).update({"name": new_name})
                 session.commit()
-                print(f"Изменение названия роли с '{original_name}' на '{new_name}' выполнено!")
-                # Перерисовываем роли из БД чтобы отразить актуальное состояние
-                self.set_current_roles()
-        else:
-            print("Изменение названия роли отменено!")
+                print(f"Изменение названия роли на '{new_name}' выполнено!")
+                # Перерисовываем роли из БД, чтобы отразить актуальное состояние
+            else:
+                msg_box = QMessageBox(
+                    QMessageBox.Icon.Warning,
+                    "Предупреждение",
+                    "Программа с таким именем уже существует!",
+                    QMessageBox.StandardButton.Ok,
+                    self
+                )
+                msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
+                msg_box.exec()
+            self.set_current_roles()
 
     def add_row(self):
         """
         Функция колбэк для кнопки добавления строки в таблицу настроек мотивации.
         Добавляет новую строку в таблицу.
-        :return:
         """
         # Если выбрана программа добавляем строку
-        if curent_role := self.ui.roles_list.currentItem():
+        if current_role := self.ui.roles_list.currentItem():
+            current_role_data: dict = current_role.data(Qt.ItemDataRole.UserRole)
+            current_role_id: str = str(current_role_data["role_id"])
+
             current_row_count = self.ui.table_motivate_settings.rowCount()
             self.ui.table_motivate_settings.insertRow(current_row_count)
             self.ui.table_motivate_settings.setItem(current_row_count, 0, QTableWidgetItem("0"))
             self.ui.table_motivate_settings.setItem(current_row_count, 1, QTableWidgetItem("0"))
+            self.ui.table_motivate_settings.setItem(current_row_count, 2, QTableWidgetItem(current_role_id))
             # Добавляем в header информацию о роли к которой привязана таблица
             # (3 столбец скрыт и используется длля хнанения роли)
-            self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(curent_role.text())
-
+            self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_id)
 
         else:
             msg_box = QMessageBox(
@@ -222,7 +251,6 @@ class SalaryReader(QMainWindow):
         """
         Функция колбэк для кнопки удаления строки в таблице настроек мотивации.
         Удаляет выбранную строку в таблице.
-        :return:
         """
         self.changes_made = True
         selected_row = self.ui.table_motivate_settings.currentRow()
@@ -247,11 +275,10 @@ class SalaryReader(QMainWindow):
         """
         # Проверяем есть ли несохраненные изменения
         if self.changes_made:
-            table_role = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
-                f"Есть не сохраненные изменения программы мотивации для {table_role}.",
+                f"Есть не сохраненные изменения программы мотивации.",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 self
             )
@@ -269,34 +296,41 @@ class SalaryReader(QMainWindow):
                 self.save_table_data_to_db(on_save_button_push=False)  # Даём понять что сохранение не по кнопке
             elif reply == QMessageBox.StandardButton.No:
                 self.changes_made = False
+
         # Блокируем сигналы чтобы не перехватывать изменения в таблице
         self.ui.table_motivate_settings.blockSignals(True)
+
+        # Отчищаем таблицу
+        self.ui.table_motivate_settings.setRowCount(0)
+
         if current_role := self.ui.roles_list.currentItem():
-            print(f"Curent role :{current_role}")
-            current_role_name: str = current_role.text()
+            print(f"Current role :{current_role}")
+            current_role_data: dict = current_role.data(Qt.ItemDataRole.UserRole)
+            current_role_id: str = str(current_role_data["role_id"])
         else:
-            print(f"Cuerent role не указана, отчищаем таблицу")
-            # Отчищаем таблицу
-            self.ui.table_motivate_settings.setRowCount(0)
+            print(f"Current role не указана, оставляем таблицу пустой")
             # Разблокируем сигналы
             self.ui.table_motivate_settings.blockSignals(False)
             return
         with get_session() as session:
-            self.ui.table_motivate_settings.setRowCount(0)
-            self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_name)
+            self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_id)
+
             role: MotivationProgram = session.query(MotivationProgram).filter(
-                MotivationProgram.name == current_role_name).first()
+                MotivationProgram.id == current_role_id).first()
+
             self.ui.table_motivate_settings.setRowCount(len(role.thresholds))
+
             for i, threshold in enumerate(role.thresholds):
                 self.ui.table_motivate_settings.setItem(i, 0, QTableWidgetItem(str(threshold.revenue_threshold)))
                 self.ui.table_motivate_settings.setItem(i, 1, QTableWidgetItem(str(threshold.salary)))
+                self.ui.table_motivate_settings.setItem(i, 2, QTableWidgetItem(current_role_id))
             # Разблокируем сигналы
             self.ui.table_motivate_settings.blockSignals(False)
 
     def save_table_data_to_db(self, on_save_button_push: bool = False):
         """
         Функция обновления настроек мотивации из таблицы.
-        Обновляет пороги мотивации из таблицы в БД, если есть запись с таким порогом привязанная к роли.
+        Обновляет пороги мотивации из таблицы порогов в БД, если есть запись с таким порогом привязанная к роли.
         И создает новый порог если нет.
 
         Если сохранение произошло с кнопки(on_save_button_push=True) то отрисует таблицу для current_role.
@@ -311,10 +345,10 @@ class SalaryReader(QMainWindow):
         :return:
         """
         self.changes_made = False
-        # Извлекаем заложенное в заголовок третьего столбца имя роли к которой привязана таблица
-        current_table_role_name = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
+        # Извлекаем заложенное в заголовок третьего столбца id роли к которой привязана таблица
+        current_table_role_id = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
         # Если заголовок третьего столбца нетронут, значит строки еще не добавлялись
-        if current_table_role_name == 'no_role':
+        if current_table_role_id == 'no_role':
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
@@ -332,7 +366,7 @@ class SalaryReader(QMainWindow):
         with get_session() as session:
             # Получаем программу
             current_motivation_program = session.query(MotivationProgram).filter(
-                MotivationProgram.name == current_table_role_name).first()
+                MotivationProgram.id == current_table_role_id).first()
             # Отчищаем пороги
             thresholds_clear(current_motivation_program, session)
             if row_count == 0:  # Если таблица пуста (уже привязана, но отчищена)
@@ -348,7 +382,7 @@ class SalaryReader(QMainWindow):
 
                     thresholds_record = session.query(
                         MotivationThreshold).join(MotivationProgram).filter(
-                        MotivationProgram.name == current_table_role_name,
+                        MotivationProgram.id == current_table_role_id,
                         MotivationThreshold.revenue_threshold == int(revenue_threshold_item.text())
                     ).first()
 

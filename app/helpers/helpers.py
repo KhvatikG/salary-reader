@@ -1,9 +1,9 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QPixmap, QPainter
+from PySide6.QtGui import QIcon, QPixmap, QPainter, QStandardItemModel
 from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QTableWidgetItem
+from PySide6.QtWidgets import QTableWidgetItem, QComboBox, QWidgetItem, QListWidgetItem
 
-from ..models.models import Employee
+from ..models.models import Employee, Department
 
 
 def fill_employees_table(table_widget, employees_list: list[Employee]):
@@ -29,6 +29,7 @@ def fill_employees_table(table_widget, employees_list: list[Employee]):
         for col in range(3):
             table_widget.item(row, col).setTextAlignment(Qt.AlignCenter)
 
+
 def get_icon_from_svg(path: str) -> QIcon:
     """
     Возвращает иконку из svg файла.
@@ -44,3 +45,36 @@ def get_icon_from_svg(path: str) -> QIcon:
     renderer.render(painter)
     painter.end()
     return QIcon(pixmap)
+
+
+def set_departments(departments_combobox: QComboBox, departments_list: list[Department]):
+    """
+    Заполняет комбо-бокс отделами.
+    Добавляет каждому отделу скрытое поле с кодом (Department.code в модели db).
+    :param departments_combobox: Комбобокс.
+    :param departments_list: Список отделов.
+    """
+    departments_combobox.clear()
+    for department in departments_list:
+        text = department.name
+        data = {"department_code": department.code}
+        departments_combobox.addItem(text, data)
+
+
+def get_department_code(department) -> int | None:
+    """
+    Возвращает код отдела, хранящийся в скрытом поле.
+    :param department: Ui элемент отдела
+    :return: Код переданного ui объекта отдела.
+    """
+    # Получаем данные хранящиеся в поле UserRole
+    data: dict = department.currentData(Qt.ItemDataRole.UserRole)
+    if data:
+        code = data.get("department_code")
+        if not code:
+            print("[get_department_code] Ошибка: Необнаружен код отдела")
+            return None
+    else:
+        code = None
+        print("[get_department_code] Ошибка: Необнаружены данные для отдела")
+    return code

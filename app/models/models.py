@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Table
+from sqlalchemy import Column, Integer, String, ForeignKey, Table, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
@@ -72,7 +72,7 @@ class MotivationProgram(Base):
     name = Column(String(250), nullable=False)
 
     # Внешний ключ для связи с отделом
-    department_code = Column(Integer, ForeignKey('departments.code'))
+    department_code = Column(Integer, ForeignKey('departments.code'), nullable=False)
 
     # Один-ко-многим связь с сотрудниками
     employees = relationship(
@@ -92,7 +92,7 @@ class MotivationProgram(Base):
                             "Department",
                             back_populates="motivation_programs"
     )
-
+    __table_args__ = (UniqueConstraint('name', 'department_code', name='_name_department_uc'),)
 
 class MotivationThreshold(Base):
     """Таблица, представляющая уровни порогов мотивации.

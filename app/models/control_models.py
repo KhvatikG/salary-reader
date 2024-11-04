@@ -1,6 +1,11 @@
 """
 Модуль для методов работы с моделями
 """
+
+# TODO: Необходимо привести к виду в котором сессия создается либо только в функциях
+#  либо тольок принимается ими
+#  (Полагаю лучше сделать так чтобы все функции в этом модуле принимали объект сессии)
+#  иначе возникают конфликты, когда сессия создается над функцией и повторно в ней
 from typing import Any
 
 from sqlalchemy.orm import Session
@@ -70,16 +75,16 @@ def assign_motivation_program(session: Session, employee_id: int, motivation_pro
     session.commit()
 
 
-def delete_motivation_program(name):
+def delete_motivation_program(role_id):
     """
     Удаляет программу мотивации и все связанные с ней пороги.
     Поднимает исключение, если программа не найдена.
-    :param name:
-    :return:
+    :param role_id: id программы мотивации.
     """
     # Находим существующую программу мотивации
     with get_session() as session:
-        motivation_program = session.query(MotivationProgram).filter_by(name=name).one_or_none()
+        motivation_program = session.query(
+            MotivationProgram).filter_by(id=role_id).one_or_none()
 
         if motivation_program:
             try:
@@ -101,15 +106,15 @@ def delete_motivation_program(name):
             raise "Мотивационная программа не найдена"
 
 
-def get_current_roles(department_name: str) -> list[MotivationProgram]:
+def get_current_roles_by_department_code(department_code: int) -> list[MotivationProgram]:
     """
-    Возвращает список ролей, которые назначены сотрудникам в данном отделе.
-    :param department_name: Название отдела, для которого нужно получить список ролей.
-    :return: Список ролей, которые назначены сотрудникам в данном отделе.
+    Возвращает список ролей, привязанных к данному отделу.
+    :param department_code: Код отдела, для которого нужно получить список ролей.
+    :return: Список ролей, привязанных к данному отделу.
     """
     with get_session() as session:
-        department = session.query(Department).filter_by(name=department_name).first()
-        roles = session.query(MotivationProgram).filter_by(department=department).all()
+        roles = session.query(
+            MotivationProgram).join(Department).filter(Department.code == department_code).all()
 
     return roles
 
@@ -118,7 +123,6 @@ def thresholds_clear(program: MotivationProgram, session: Session):
     """
     Удаляет пороги мотивации для указанной программы.
     :param program: Программа мотивации, для которой нужно удалить пороги.
-    :return:
     """
     for threshold in program.thresholds:
         session.delete(threshold)

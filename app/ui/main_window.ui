@@ -243,10 +243,10 @@ border: none;</string>
                </property>
                <property name="styleSheet">
                 <string notr="true">QTableWidget {
-        gridline-color: gray;  /* Установка цвета линий */
+        gridline-color: rgba(255, 255, 255, 70);
     }
     QHeaderView::section {
-        padding: 3px;  /* Убедитесь, что нет лишнего отступа */
+        padding: 3px;  
     }</string>
                </property>
                <property name="frameShape">
