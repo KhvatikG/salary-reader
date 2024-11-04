@@ -1,9 +1,9 @@
 import sys
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPalette, QColor, QIntValidator
+from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidgetItem, QStyle
+    QTableWidgetItem, QListWidgetItem
 
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
 from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear

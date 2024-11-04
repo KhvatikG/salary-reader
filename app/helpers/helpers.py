@@ -1,7 +1,7 @@
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QPixmap, QPainter, QStandardItemModel
+from PySide6.QtGui import QIcon, QPixmap, QPainter
 from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QTableWidgetItem, QComboBox, QWidgetItem, QListWidgetItem
+from PySide6.QtWidgets import QTableWidgetItem, QComboBox
 
 from ..models.models import Employee, Department
 
