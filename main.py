@@ -1,3 +1,5 @@
+# TODO: Перенести логику changes_made полностью в контроллер table_controller
+
 import sys
 
 from PySide6.QtCore import Qt
@@ -7,6 +9,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledIte
 
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
 from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear
+from app.ui.controllers.table_controller import ThresholdsTableController
 from app.ui.main_window_ui import Ui_MainWindow
 from app.helpers.helpers import get_icon_from_svg, set_departments, get_department_code
 from app.db import get_session
@@ -33,6 +36,8 @@ class SalaryReader(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        self.threshold_table_controller = ThresholdsTableController(self.ui.table_motivate_settings)
+
         # Выпадающий список выбора отдела
         set_departments(self.ui.department, DEPARTMENTS_INIT)
         self.ui.department.currentIndexChanged.connect(  # При выборе отдела выводим список его программ
@@ -56,11 +61,6 @@ class SalaryReader(QMainWindow):
         )
         # Скрываем третий столбец, он для технических нужд:
         self.ui.table_motivate_settings.setColumnHidden(2, True)
-        # Установка валидации ввода для таблицы настройки мотивации:
-        numeric_delegate = NumericDelegate(self.ui.table_motivate_settings)
-        self.ui.table_motivate_settings.setItemDelegateForColumn(0, numeric_delegate)
-        self.ui.table_motivate_settings.setItemDelegateForColumn(1, numeric_delegate)
-        self.ui.table_motivate_settings.itemChanged.connect(self.on_table_item_changes)
         # Выбираем первую роль в списке и заполняем таблицу на открытии
         self.ui.roles_list.setCurrentRow(0)
         self.fill_role_settings_table()
@@ -228,9 +228,6 @@ class SalaryReader(QMainWindow):
 
             current_row_count = self.ui.table_motivate_settings.rowCount()
             self.ui.table_motivate_settings.insertRow(current_row_count)
-            self.ui.table_motivate_settings.setItem(current_row_count, 0, QTableWidgetItem("0"))
-            self.ui.table_motivate_settings.setItem(current_row_count, 1, QTableWidgetItem("0"))
-            self.ui.table_motivate_settings.setItem(current_row_count, 2, QTableWidgetItem(current_role_id))
             # Добавляем в header информацию о роли к которой привязана таблица
             # (3 столбец скрыт и используется длля хнанения роли)
             self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_id)
@@ -252,10 +249,10 @@ class SalaryReader(QMainWindow):
         Функция колбэк для кнопки удаления строки в таблице настроек мотивации.
         Удаляет выбранную строку в таблице.
         """
-        self.changes_made = True
         selected_row = self.ui.table_motivate_settings.currentRow()
         if selected_row >= 0:
             self.ui.table_motivate_settings.removeRow(selected_row)
+            self.threshold_table_controller.changes_made = True
         else:
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
@@ -274,7 +271,7 @@ class SalaryReader(QMainWindow):
         Заполняет таблицу настройками мотивации для выбранной роли.
         """
         # Проверяем есть ли несохраненные изменения
-        if self.changes_made:
+        if self.threshold_table_controller.changes_made:
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
@@ -295,7 +292,7 @@ class SalaryReader(QMainWindow):
             if reply == QMessageBox.StandardButton.Yes:
                 self.save_table_data_to_db(on_save_button_push=False)  # Даём понять что сохранение не по кнопке
             elif reply == QMessageBox.StandardButton.No:
-                self.changes_made = False
+                self.threshold_table_controller.changes_made = False
 
         # Блокируем сигналы чтобы не перехватывать изменения в таблице
         self.ui.table_motivate_settings.blockSignals(True)
@@ -315,101 +312,76 @@ class SalaryReader(QMainWindow):
         with get_session() as session:
             self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_id)
 
-            role: MotivationProgram = session.query(MotivationProgram).filter(
+            current_motivation_program: MotivationProgram = session.query(MotivationProgram).filter(
                 MotivationProgram.id == current_role_id).first()
 
-            self.ui.table_motivate_settings.setRowCount(len(role.thresholds))
+            # Загружаем данные в таблицу из db используя контроллер
+            self.threshold_table_controller.load_data(current_motivation_program)
 
-            for i, threshold in enumerate(role.thresholds):
-                self.ui.table_motivate_settings.setItem(i, 0, QTableWidgetItem(str(threshold.revenue_threshold)))
-                self.ui.table_motivate_settings.setItem(i, 1, QTableWidgetItem(str(threshold.salary)))
-                self.ui.table_motivate_settings.setItem(i, 2, QTableWidgetItem(current_role_id))
             # Разблокируем сигналы
             self.ui.table_motivate_settings.blockSignals(False)
 
     def save_table_data_to_db(self, on_save_button_push: bool = False):
         """
-        Функция обновления настроек мотивации из таблицы.
-        Обновляет пороги мотивации из таблицы порогов в БД, если есть запись с таким порогом привязанная к роли.
-        И создает новый порог если нет.
+        Сохраняет данные таблицы в базу данных.
 
-        Если сохранение произошло с кнопки(on_save_button_push=True) то отрисует таблицу для current_role.
-
-        Current_role - в данном контексте это роль которая в данный момент выбрана в списке ролей.
-        Не одно и тоже что current_table_role_name - эта переменная содержит имя роли к которой привязана
-        таблица, и хранящееся в самой таблице.
-        :param on_save_button_push Если функцию использует не нажатие кнопки под таблицей порогов,
-         то его необходимо установить в false.
-         Это необходимо для корректного обновления(отрисовки) таблицы в интерфейсе после сохранения.
-         Если параметр on_save_button_push == True, то запускается отрисовка таблицы.
-        :return:
+        Args:
+            on_save_button_push (bool): Флаг, указывающий, было ли сохранение инициировано нажатием кнопки
         """
-        self.changes_made = False
-        # Извлекаем заложенное в заголовок третьего столбца id роли к которой привязана таблица
-        current_table_role_id = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
-        # Если заголовок третьего столбца нетронут, значит строки еще не добавлялись
-        if current_table_role_id == 'no_role':
+        try:
+            # Получаем id программы мотивации из заголовка таблицы
+            current_table_role_id = self.ui.table_motivate_settings.horizontalHeaderItem(2).text()
+
+            # Проверяем, привязана ли таблица к программе мотивации
+            if current_table_role_id == 'no_role':
+                QMessageBox.warning(
+                    self,
+                    "Предупреждение",
+                    "Таблица пуста и не привязана ни к одной программе мотивации",
+                    QMessageBox.StandardButton.Ok
+                )
+                return
+
+            with get_session() as session:
+                # Получаем программу мотивации
+                current_motivation_program = session.query(MotivationProgram).filter(
+                    MotivationProgram.id == current_table_role_id
+                ).first()
+
+                # Если программа не найдена
+                if not current_motivation_program:
+                    raise ValueError("Программа мотивации не найдена")
+
+                # Сохраняем данные используя контроллер таблицы
+                if self.threshold_table_controller.save_data(current_motivation_program, session):
+                    self.threshold_table_controller.changes_made = False
+
+                    # Если сохранение было по кнопке, обновляем отображение таблицы
+                    if on_save_button_push:
+                        self.fill_role_settings_table()
+
+                    msg_box = QMessageBox(
+                        QMessageBox.Icon.Information,
+                        "Успех",
+                        "Данные успешно сохранены",
+                        QMessageBox.StandardButton.Ok,
+                        self
+                    )
+
+                    msg_box.setStyleSheet(WARNING_DIALOG_STYLE)  # TODO: Сделать шаблон  SUCCESS_DIALOG_STYLE
+                    msg_box.exec()
+
+        except Exception as e:
             msg_box = QMessageBox(
-                QMessageBox.Icon.Warning,
-                "Предупреждение",
-                "Таблица пуста и не привязана ни к одной роли",
+                QMessageBox.Icon.Critical,
+                "Ошибка",
+                f"Не удалось сохранить данные: {str(e)}",
                 QMessageBox.StandardButton.Ok,
                 self
             )
 
             msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
             msg_box.exec()
-            return
-
-        row_count = self.ui.table_motivate_settings.rowCount()
-
-        with get_session() as session:
-            # Получаем программу
-            current_motivation_program = session.query(MotivationProgram).filter(
-                MotivationProgram.id == current_table_role_id).first()
-            # Отчищаем пороги
-            thresholds_clear(current_motivation_program, session)
-            if row_count == 0:  # Если таблица пуста (уже привязана, но отчищена)
-                session.commit()  # То сохраняем без порогов и выходим
-                return
-
-            else:  # Если таблица не пуста
-                for row in range(row_count):
-                    print(f"Строка {row}")
-                    # Поскольку, у нас есть две колонки: revenue_threshold и salary
-                    revenue_threshold_item = self.ui.table_motivate_settings.item(row, 0)
-                    salary_item = self.ui.table_motivate_settings.item(row, 1)
-
-                    thresholds_record = session.query(
-                        MotivationThreshold).join(MotivationProgram).filter(
-                        MotivationProgram.id == current_table_role_id,
-                        MotivationThreshold.revenue_threshold == int(revenue_threshold_item.text())
-                    ).first()
-
-                    if thresholds_record:
-                        print(f"Найден порог {thresholds_record}")
-                        thresholds_record.salary = int(salary_item.text())
-                    else:
-                        print("Порог не найден")
-                        # Сохраняем измененные
-                        session.add(MotivationThreshold(revenue_threshold=int(revenue_threshold_item.text()),
-                                                        salary=int(salary_item.text()),
-                                                        motivation_program=current_motivation_program))
-                session.commit()
-        # После сохранения актуализируем таблицу если она была сохранена кнопкой под таблицей
-        if on_save_button_push:
-            print("Была нажата кнопка")
-            self.fill_role_settings_table()
-
-    def on_table_item_changes(self, item):
-        """
-        Функция для отслеживания несохраненных изменений в таблице мотивации.
-        Фиксирует факт несохраненных изменений.
-        Устанавливает флаг changes_made в True
-        После сохранения или отмены этот флаг должен быть сброшен.
-        :return:
-        """
-        self.changes_made = True
 
 
 if __name__ == '__main__':
