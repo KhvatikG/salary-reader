@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(992, 630)
+        MainWindow.resize(1105, 630)
         MainWindow.setStyleSheet(u"\n"
 "background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgba(81, 0, 135, 255), stop:0.427447 rgba(41, 61, 132, 235), stop:1 rgba(155, 79, 165, 255));\n"
 "")
@@ -279,15 +279,25 @@ class Ui_MainWindow(object):
 
         self.employees_layout.addWidget(self.employees_label)
 
-        self.employees_table = QListWidget(self.employees)
+        self.employees_table = QTableWidget(self.employees)
         self.employees_table.setObjectName(u"employees_table")
-        self.employees_table.setStyleSheet(u"background-color: rgba(255, 255, 255, 0)")
+        self.employees_table.setStyleSheet(u"QTableWidget {\n"
+"        gridline-color: rgba(255, 255, 255, 70);\n"
+"    }\n"
+"    QHeaderView::section {\n"
+"        padding: 3px;  \n"
+"    }")
+        self.employees_table.setSortingEnabled(True)
+        self.employees_table.horizontalHeader().setCascadingSectionResizes(False)
+        self.employees_table.horizontalHeader().setMinimumSectionSize(50)
+        self.employees_table.horizontalHeader().setStretchLastSection(True)
+        self.employees_table.verticalHeader().setVisible(False)
 
         self.employees_layout.addWidget(self.employees_table)
 
-        self.employees_edit = QPushButton(self.employees)
-        self.employees_edit.setObjectName(u"employees_edit")
-        self.employees_edit.setStyleSheet(u"QPushButton:hover {\n"
+        self.button_employees_edit = QPushButton(self.employees)
+        self.button_employees_edit.setObjectName(u"button_employees_edit")
+        self.button_employees_edit.setStyleSheet(u"QPushButton:hover {\n"
 "background-color: rgba(255, 255, 255, 40)\n"
 "}\n"
 "\n"
@@ -295,7 +305,7 @@ class Ui_MainWindow(object):
 "background-color: rgba(255, 255, 255, 70)\n"
 "}")
 
-        self.employees_layout.addWidget(self.employees_edit)
+        self.employees_layout.addWidget(self.button_employees_edit)
 
 
         self.horizontalLayout.addWidget(self.employees)
@@ -405,13 +415,13 @@ class Ui_MainWindow(object):
         self.roles_add_button.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c", None))
         self.roles_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.roles_delete.setText(QCoreApplication.translate("MainWindow", u"\u0423\u0434\u0430\u043b\u0438\u0442\u044c", None))
-        self.label_motivate_settings.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u0434\u043e\u043b\u0436\u043d\u043e\u0441\u0442\u0438:", None))
+        self.label_motivate_settings.setText(QCoreApplication.translate("MainWindow", u"\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0430 \u0432\u043e\u0437\u043d\u0430\u0433\u0440\u043e\u0436\u0434\u0435\u043d\u0438\u0439 \u0434\u043b\u044f \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b:", None))
         self.button_add_threshhold.setText(QCoreApplication.translate("MainWindow", u"+", None))
         self.button_delete_threshold.setText(QCoreApplication.translate("MainWindow", u"-", None))
         self.button_settings_save.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", None))
         self.button_settings_cancel.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442\u043c\u0435\u043d\u0438\u0442\u044c", None))
-        self.employees_label.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0430\u0431\u043e\u0442\u043d\u0438\u043a\u0438 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0435:", None))
-        self.employees_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
+        self.employees_label.setText(QCoreApplication.translate("MainWindow", u"\u0421\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u0438 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u0435:", None))
+        self.button_employees_edit.setText(QCoreApplication.translate("MainWindow", u"\u0420\u0435\u0434\u0430\u043a\u0442\u0438\u0440\u043e\u0432\u0430\u0442\u044c", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442:", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e:", None))
         self.refresh_salary.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c", None))

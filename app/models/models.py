@@ -9,7 +9,7 @@ association_table = Table(
     'employee_department_association',
     Base.metadata,
     Column('employee_id', Integer, ForeignKey('employees.id')),
-    Column('department_id', Integer, ForeignKey('departments.id'))
+    Column('department_code', Integer, ForeignKey('departments.code'))
 )
 
 
@@ -21,7 +21,7 @@ class Department(Base):
    """
     __tablename__ = 'departments'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     code = Column(String, unique=True, nullable=False)
     name = Column(String(250), nullable=False)
 
@@ -46,8 +46,11 @@ class Employee(Base):
     """
     __tablename__ = 'employees'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(String, primary_key=True)
     name = Column(String(250), nullable=False)
+    code = Column(Integer, unique=True)
+    position = Column(String(250), nullable=False)
+
     motivation_program_id = Column(Integer, ForeignKey('motivation_programs.id'))
 
     # Связь многие ко многим с отделами
@@ -68,7 +71,7 @@ class MotivationProgram(Base):
     """
     __tablename__ = 'motivation_programs'
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(250), nullable=False)
 
     # Внешний ключ для связи с отделом

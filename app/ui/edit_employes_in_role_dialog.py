@@ -15,16 +15,16 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QFont, QFontDatabase, QGradient, QIcon,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
-from PySide6.QtWidgets import (QApplication, QDialog, QFrame, QGridLayout,
-    QHBoxLayout, QHeaderView, QLabel, QLineEdit,
-    QPushButton, QSizePolicy, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QAbstractItemView, QApplication, QDialog, QFrame,
+    QGridLayout, QHBoxLayout, QHeaderView, QLabel,
+    QLineEdit, QPushButton, QSizePolicy, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget)
 
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         if not Dialog.objectName():
             Dialog.setObjectName(u"Dialog")
-        Dialog.resize(698, 594)
+        Dialog.resize(983, 594)
         Dialog.setStyleSheet(u"background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgba(81, 0, 135, 255), stop:0.427447 rgba(41, 61, 132, 235), stop:1 rgba(155, 79, 165, 255));\n"
 "")
         self.gridLayout = QGridLayout(Dialog)
@@ -56,6 +56,14 @@ class Ui_Dialog(object):
 
         self.table_all_employees = QTableWidget(self.frame_edit_employes_in_role)
         self.table_all_employees.setObjectName(u"table_all_employees")
+        self.table_all_employees.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_all_employees.setDragEnabled(True)
+        self.table_all_employees.setDragDropOverwriteMode(False)
+        self.table_all_employees.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+        self.table_all_employees.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.table_all_employees.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table_all_employees.setSortingEnabled(True)
+        self.table_all_employees.verticalHeader().setVisible(False)
 
         self.layout_all_employees.addWidget(self.table_all_employees)
 
@@ -64,20 +72,23 @@ class Ui_Dialog(object):
 
         self.add_delete_employees_buttons = QVBoxLayout()
         self.add_delete_employees_buttons.setObjectName(u"add_delete_employees_buttons")
-        self.button_ad_in_role = QPushButton(self.frame_edit_employes_in_role)
-        self.button_ad_in_role.setObjectName(u"button_ad_in_role")
-        self.button_ad_in_role.setStyleSheet(u"QPushButton:hover {\n"
+        self.button_add_to_role = QPushButton(self.frame_edit_employes_in_role)
+        self.button_add_to_role.setObjectName(u"button_add_to_role")
+        self.button_add_to_role.setMaximumSize(QSize(80, 16777215))
+        self.button_add_to_role.setStyleSheet(u"QPushButton:hover {\n"
 "background-color: rgba(255, 255, 255, 40)\n"
 "}\n"
 "\n"
 "QPushButton:pressed {\n"
 "background-color: rgba(255, 255, 255, 70)\n"
 "}")
+        self.button_add_to_role.setFlat(False)
 
-        self.add_delete_employees_buttons.addWidget(self.button_ad_in_role)
+        self.add_delete_employees_buttons.addWidget(self.button_add_to_role)
 
         self.button_delete_from_role = QPushButton(self.frame_edit_employes_in_role)
         self.button_delete_from_role.setObjectName(u"button_delete_from_role")
+        self.button_delete_from_role.setMaximumSize(QSize(80, 16777215))
         self.button_delete_from_role.setStyleSheet(u"QPushButton:hover {\n"
 "background-color: rgba(255, 255, 255, 40)\n"
 "}\n"
@@ -103,10 +114,17 @@ class Ui_Dialog(object):
 
         self.layout_role_employes.addWidget(self.label_employes_in_role)
 
-        self.table_role_employes = QTableWidget(self.frame_edit_employes_in_role)
-        self.table_role_employes.setObjectName(u"table_role_employes")
+        self.table_role_employees = QTableWidget(self.frame_edit_employes_in_role)
+        self.table_role_employees.setObjectName(u"table_role_employes")
+        self.table_role_employees.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.table_role_employees.setDragEnabled(True)
+        self.table_role_employees.setDragDropOverwriteMode(False)
+        self.table_role_employees.setDragDropMode(QAbstractItemView.DragDropMode.DragDrop)
+        self.table_role_employees.setDefaultDropAction(Qt.DropAction.MoveAction)
+        self.table_role_employees.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table_role_employees.verticalHeader().setVisible(False)
 
-        self.layout_role_employes.addWidget(self.table_role_employes)
+        self.layout_role_employes.addWidget(self.table_role_employees)
 
 
         self.horizontalLayout.addLayout(self.layout_role_employes)
@@ -162,7 +180,7 @@ class Ui_Dialog(object):
         Dialog.setWindowTitle(QCoreApplication.translate("Dialog", u"Dialog", None))
         self.label_all_employeees.setText(QCoreApplication.translate("Dialog", u"\u0412\u0441\u0435 \u0440\u0430\u0431\u043e\u0442\u043d\u0438\u043a\u0438:", None))
         self.search_all_employees.setPlaceholderText(QCoreApplication.translate("Dialog", u"\u041f\u043e\u0438\u0441\u043a", None))
-        self.button_ad_in_role.setText(QCoreApplication.translate("Dialog", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c->", None))
+        self.button_add_to_role.setText(QCoreApplication.translate("Dialog", u"\u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c->", None))
         self.button_delete_from_role.setText(QCoreApplication.translate("Dialog", u"<-\u0423\u0434\u0430\u043b\u0438\u0442\u044c", None))
         self.label_employes_in_role.setText(QCoreApplication.translate("Dialog", u"\u0420\u0430\u0431\u043e\u0442\u043d\u0438\u043a\u0438 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u0440\u043e\u043b\u0438:", None))
         self.button_save.setText(QCoreApplication.translate("Dialog", u"\u0421\u043e\u0445\u0440\u0430\u043d\u0438\u0442\u044c", None))

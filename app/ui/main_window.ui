@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>992</width>
+    <width>1105</width>
     <height>630</height>
    </rect>
   </property>
@@ -223,7 +223,7 @@ background-color: none;
 border: none;</string>
                </property>
                <property name="text">
-                <string>Настройка вознагрождения для выбранной должности:</string>
+                <string>Настройка вознагрождений для выбранной программы:</string>
                </property>
               </widget>
              </item>
@@ -386,19 +386,39 @@ background-color: none;
 border: none;</string>
                </property>
                <property name="text">
-                <string>Работники в выбранной программе:</string>
+                <string>Сотрудники в выбранной программе:</string>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QListWidget" name="employees_table">
+              <widget class="QTableWidget" name="employees_table">
                <property name="styleSheet">
-                <string notr="true">background-color: rgba(255, 255, 255, 0)</string>
+                <string notr="true">QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    }
+    QHeaderView::section {
+        padding: 3px;  
+    }</string>
                </property>
+               <property name="sortingEnabled">
+                <bool>true</bool>
+               </property>
+               <attribute name="horizontalHeaderCascadingSectionResizes">
+                <bool>false</bool>
+               </attribute>
+               <attribute name="horizontalHeaderMinimumSectionSize">
+                <number>50</number>
+               </attribute>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="verticalHeaderVisible">
+                <bool>false</bool>
+               </attribute>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="employees_edit">
+              <widget class="QPushButton" name="button_employees_edit">
                <property name="styleSheet">
                 <string notr="true">QPushButton:hover {
 background-color: rgba(255, 255, 255, 40)

@@ -1,19 +1,23 @@
 # TODO: Перенести логику changes_made полностью в контроллер table_controller
 
 import sys
+from typing import Type
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidgetItem
+    QTableWidgetItem, QListWidgetItem, QAbstractItemView
 
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
-from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear
+from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear, \
+    get_employees_by_motivation_program_id
+from app.screens.edit_employees_window import EditEmployeesWindow
 from app.ui.controllers.table_controller import ThresholdsTableController
 from app.ui.main_window_ui import Ui_MainWindow
 from app.helpers.helpers import get_icon_from_svg, set_departments, get_department_code
 from app.db import get_session
 from app.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
+from app.iiko_business_api.employees import update_employees_from_api
 
 with get_session() as session:
     EMPLOYEES_INIT = session.query(Employee).all()
@@ -49,7 +53,6 @@ class SalaryReader(QMainWindow):
         self.ui.roles_list.currentItemChanged.connect(  # Заполняем таблицу при выборе роли
             self.fill_role_settings_table
         )
-
         self.ui.roles_list.itemChanged.connect(self.update_role_in_db)
         self.ui.roles_add_button.clicked.connect(self.add_role)
         self.ui.roles_delete.clicked.connect(self.delete_role)
@@ -79,6 +82,14 @@ class SalaryReader(QMainWindow):
         self.ui.button_delete_threshold.setIcon(icon)
 
         self.ui.button_settings_save.clicked.connect(lambda: self.save_table_data_to_db(on_save_button_push=True))
+
+        # Таблица сотрудников привязанных к роли
+        self.ui.employees_table.setColumnCount(4)
+        self.ui.employees_table.setHorizontalHeaderLabels(["ФИО", "Должность", "Отдел", "Табельный"])
+        self.ui.employees_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.fill_employees_table(self.ui.roles_list.currentItem().data(Qt.ItemDataRole.UserRole)['role_id'])
+
+        self.ui.button_employees_edit.clicked.connect(self.open_edit_employees_window)
 
     def set_current_roles(self):
         """
@@ -298,12 +309,17 @@ class SalaryReader(QMainWindow):
         self.ui.table_motivate_settings.blockSignals(True)
 
         # Отчищаем таблицу
+        # TODO: Перенести
         self.ui.table_motivate_settings.setRowCount(0)
+        self.ui.employees_table.setRowCount(0)
 
         if current_role := self.ui.roles_list.currentItem():
             print(f"Current role :{current_role}")
             current_role_data: dict = current_role.data(Qt.ItemDataRole.UserRole)
             current_role_id: str = str(current_role_data["role_id"])
+
+            # Заполняем список сотрудников привязанных к роли
+            self.fill_employees_table(current_role_id)
         else:
             print(f"Current role не указана, оставляем таблицу пустой")
             # Разблокируем сигналы
@@ -382,6 +398,73 @@ class SalaryReader(QMainWindow):
 
             msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
             msg_box.exec()
+
+    def fill_employees_table(self, current_role_id):
+        """
+        Функция заполнения таблицы сотрудников.
+        Заполняет таблицу сотрудниками для выбранной роли.
+        """
+        # Обновляем данные по работникам во внутренней БД
+        with get_session() as session:
+            try:  # TODO: Добавить кеширование чтобы не засыпать iiko запросами
+                pass  # DEBUG Отключил запросы в iiko
+                # update_employees_from_api(department_id=1, session=session)
+                #session.commit()  # Сохраняем изменения, если всё успешно
+            except Exception as e:
+                session.rollback()  # Откатываем изменения в случае ошибки
+                print(f"[fill_employees_table]Ошибка при обновлении данных сотрудников: {e}")
+
+            employees: list[Type[Employee]] = get_employees_by_motivation_program_id(
+                session=session,
+                motivation_program_id=current_role_id
+            )
+
+            self.ui.employees_table.setRowCount(0)
+            self.ui.employees_table.setRowCount(len(employees))
+
+            for i, employee in enumerate(employees):
+                self.ui.employees_table.setItem(i, 0, QTableWidgetItem(employee.name))
+                self.ui.employees_table.setItem(i, 1, QTableWidgetItem(employee.position))
+                self.ui.employees_table.setItem(i, 3, QTableWidgetItem(str(employee.code)))
+
+                departments_string = ""
+                for department in employee.departments:
+                    departments_string += department.name + " "
+                self.ui.employees_table.setItem(i, 2, QTableWidgetItem(departments_string))
+
+    def open_edit_employees_window(self):
+        """
+        Открывает окно добавления, удаления сотрудников из программы мотивации
+        :return:
+        """
+        motivation_program = self.ui.roles_list.currentItem()
+        print(f"Мотивационная программа в функции открытия окна получена - {motivation_program}")
+        if not motivation_program:
+
+            msg_box = QMessageBox(
+                QMessageBox.Icon.Warning,
+                "Предупреждение",
+                "Не выбрана программа мотивации",
+                QMessageBox.StandardButton.Ok,
+                self
+            )
+
+            msg_box.setStyleSheet(WARNING_DIALOG_STYLE)
+            msg_box.exec()
+
+            return
+
+        motivation_program_data = motivation_program.data(Qt.ItemDataRole.UserRole)
+        motivation_program_id = str(motivation_program_data["role_id"])
+        motivation_program_name = motivation_program.text()
+        print(f"Передаю role_id в новое окно - {motivation_program_id}")
+        # Сохраняем ссылку на окно, чтобы оно сразу не закрылось сборщиком мусора.
+        self.edit_employees_window = EditEmployeesWindow(motivation_program_id)
+        self.edit_employees_window.setWindowTitle(f"Сотрудники программы мотивации {motivation_program_name}")
+        self.edit_employees_window.show()
+        self.edit_employees_window.exec()
+        self.fill_employees_table(motivation_program_id)
+        print("Закрыто")
 
 
 if __name__ == '__main__':

@@ -6,7 +6,7 @@
 #  либо тольок принимается ими
 #  (Полагаю лучше сделать так чтобы все функции в этом модуле принимали объект сессии)
 #  иначе возникают конфликты, когда сессия создается над функцией и повторно в ней
-from typing import Any
+from typing import Any, Type
 
 from sqlalchemy.orm import Session
 
@@ -50,7 +50,7 @@ def save_employee(session: Session, employee_data: dict[str, Any]) -> None:
     session.commit()
 
 
-def assign_motivation_program(session: Session, employee_id: int, motivation_program_id: int) -> None:
+def assign_motivation_program(session: Session, employee_id: str, motivation_program_id: str | None) -> None:
     """
     Назначает мотивационную программу сотруднику.
 
@@ -64,7 +64,7 @@ def assign_motivation_program(session: Session, employee_id: int, motivation_pro
         raise ValueError("Сотрудник с указанным ID не найден.")
 
     # Получаем мотивационную программу по ID
-    motivation_program = session.query(MotivationProgram).filter_by(motivation_id=motivation_program_id).first()
+    motivation_program = session.query(MotivationProgram).filter_by(id=motivation_program_id).first()
     if not motivation_program:
         raise ValueError("Мотивационная программа с указанным ID не найдена.")
 
@@ -127,3 +127,15 @@ def thresholds_clear(program: MotivationProgram, session: Session):
     for threshold in program.thresholds:
         session.delete(threshold)
     session.commit()
+
+
+def get_employees_by_motivation_program_id(session: Session, motivation_program_id: int) -> list[Type[Employee]]:
+    """
+    Возвращает список сотрудников, привязанных к указанной программе мотивации.
+    :param session: Сессия SQLAlchemy.
+    :param motivation_program_id: ID программы мотивации.
+    """
+    employees = session.query(Employee).join(MotivationProgram).filter(
+        MotivationProgram.id == motivation_program_id).all()
+
+    return employees

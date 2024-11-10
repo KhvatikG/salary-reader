@@ -1,8 +1,9 @@
-from PySide6.QtWidgets import QStyledItemDelegate, QLineEdit, QTableWidgetItem, QMessageBox, QTableWidget
+from PySide6.QtWidgets import QStyledItemDelegate, QLineEdit, QTableWidgetItem, QMessageBox, QTableWidget, \
+    QAbstractItemView
 from PySide6.QtGui import QIntValidator
 from PySide6.QtCore import Qt
 
-from app.models import MotivationThreshold
+from app.models import MotivationThreshold, MotivationProgram
 
 
 class NumericDelegate(QStyledItemDelegate):
@@ -69,7 +70,8 @@ class NumericDelegate(QStyledItemDelegate):
         # Устанавливаем геометрию редактора равной размеру ячейки
         editor.setGeometry(option.rect)
 
-
+# TODO: Добавить метод table_init с настройкой начальных параметров
+# TODO: Написать родительский класс для контроллеров
 class ThresholdsTableController:
     """
     Контроллер таблицы, управляющий отображением и редактированием данных
@@ -79,7 +81,7 @@ class ThresholdsTableController:
         """
         Инициализация контроллера.
 
-        :param table_widget: Виджет таблицы, которым будет управлять контроллер
+        :param table_widget: Виджет таблицы порогов
         """
         self.changes_made: bool = False
         # Сохраняем ссылку на таблицу
@@ -122,6 +124,7 @@ class ThresholdsTableController:
 
         motivation_program - объект программы мотивации
         """
+        # TODO: Перенести сюда логику получения данных из бд и передать сюда сессию
         # Устанавливаем количество строк равным количеству порогов
         self.table_widget.setRowCount(len(motivation_program.thresholds))
 
@@ -247,3 +250,50 @@ class ThresholdsTableController:
             }
         """)
         dialog.exec_()
+
+
+class EmployeesTableController():
+    """
+    Класс для управления таблицей сотрудников, привязанных к роли.
+    """
+    def __init__(self, table_widget: QTableWidget):
+        """
+        Инициализация контроллера
+
+        :param table_widget: Виджет таблицы сотрудников
+        """
+        # Инициализация таблицы
+        self.table_widget = table_widget
+        self.table_widget.setColumnCount(3)
+        self.table_widget.setHorizontalHeaderLabels(
+            ["Табельный номер", "Имя", "Отделы"]
+        )
+        self.table_widget.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+    def load_data(self, motivation_program: MotivationProgram):
+        """
+        Загружает данные о пользователях привязанных к переданной motivation_program из базы данных в таблицу.
+        :param motivation_program: Объект программы мотивации.
+        """
+        # TODO: Перенести сюда логику получения данных из бд и передать сюда сессию
+        # Устанавливаем количество строк равным количеству порогов
+        self.table_widget.setRowCount(len(motivation_program.employees))
+
+        # Для каждого порога создаем элементы таблицы
+        for i, employee in enumerate(motivation_program.employees):
+            # Форматируем значения с разделителями и обозначением валюты
+            code = str(employee.code)
+            name = employee.name
+            departments = str([department.name for department in employee.departments])
+
+            # Создаем элементы таблицы
+            code_item = QTableWidgetItem(code)
+            name_item = QTableWidgetItem(name)
+            departments_item = QTableWidgetItem(departments)
+
+            # Устанавливаем элементы в таблицу
+            self.table_widget.setItem(i, 0, code_item)
+            self.table_widget.setItem(i, 1, name_item)
+            self.table_widget.setItem(i, 2, departments_item)
+
+

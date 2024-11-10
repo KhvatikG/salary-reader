@@ -1,6 +1,12 @@
 # TODO: Флаг ис авторайз, отображает стэйт авторизации, если он тру то отправляем запрос
 #  Если фолс то предварительно авторизуемся. Также хэндлер ответов в случае анаотарайзд меняет флаг на folse
 #  При этом необходимо избежать зацикленного повторения попыток авторизации
+
+# TODO: НУЖНО СДЕЛАТЬ МЕТОД ПОЗВОЛЯЮЩИЙ РЕАЛИЗОВАТЬ КОНТЕКСТ ТИПА "with auth as ..."
+#  Или декоратор @with_auth для того чтобы не писать каждый раз client.login()
+#  После заменить удалить все сlient.login() в проекте
+
+# TODO: Добавить логирование получения данных
 """
 Модуль для работы с API iiko
 
@@ -45,6 +51,10 @@ class BaseClient:
             try:
                 response = func(*args, **kwargs)
                 response.raise_for_status()
+                logger.debug(f"Request URL: {response.request.url}")
+                logger.debug(f"Request Method: {response.request.method}")
+                logger.debug(f"Request Body: {response.request.body}")
+                logger.debug(f"Response Body: {response.text}")
                 return response
             except HTTPError as http_error:
                 logger.error(f"HTTP error: {http_error} - Status code: {http_error.response.status_code}")
@@ -60,7 +70,7 @@ class BaseClient:
                 logger.error(f"Timeout error: {timeout_error}")
             except RequestException as request_error:
                 logger.error(f"Request error: {request_error}")
-            raise
+            raise Exception
 
         return wrapper
 
@@ -92,7 +102,7 @@ class BaseClient:
         params = {"login": self.username, "pass": self.secret}
         response = self.get(endpoint=LOGIN_ENDPOINT, params=params)
         if response.ok:
-            logger.info("Авторизация прошла успешно")
+            logger.info("Авторизация прошла успешно А ЭТО ТЕСТОВЫЙ ТЕКСТ ДЛЯ ПРОВЕРКИ ОБНОВЛЕНИЯ ИЗМЕНЕНИЙ")
         else:
             logger.error("Ошибка авторизации")
             logger.debug(f"Ответ: {response.text}")

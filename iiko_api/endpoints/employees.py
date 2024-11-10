@@ -14,8 +14,36 @@ class EmployeesEndpoints:
         Получение списка всех сотрудников
         :return: список словарей, где каждый словарь представляет сотрудника
         """
+        # Авторизация
+        self.client.login()
+
         # Выполнение GET-запроса к API, возвращающего данные о сотрудниках
         xml_data = self.client.get('/resto/api/employees/')
+
+        # Отпускаем авторизацию
+        self.client.logout()
+
+        # Преобразование XML-данных в словарь
+        dict_data = xmltodict.parse(xml_data.text)
+
+        # Извлечение списка сотрудников из словаря
+        employees = dict_data['employees']['employee']
+
+        return employees
+
+    def get_employees_by_department(self, department_code: str) -> list[dict]:
+        """
+        Получение списка сотрудников по коду отдела
+        :return: список словарей, где каждый словарь представляет сотрудника привязанного к отделу
+        """
+        # Авторизация
+        self.client.login()
+
+        # Выполнение GET-запроса к API, возвращающего данные о сотрудниках
+        xml_data = self.client.get(f'/resto/api/employees/byDepartment/{department_code}')
+
+        # Отпускаем авторизацию
+        self.client.logout()
 
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
@@ -38,8 +66,14 @@ class RolesEndpoints:
         Получение списка всех ролей
         :return: Список словарей, где каждый словарь представляет роль
         """
+        # Авторизуемся
+        self.client.login()
+
         # Выполнение GET-запроса к API, возвращающего данные о ролях
         xml_data = self.client.get('/resto/api/employees/roles/')
+
+        # Отпускаем авторизацию
+        self.client.logout()
 
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
@@ -49,3 +83,25 @@ class RolesEndpoints:
 
         return roles
 
+    def get_role_by_id(self, role_id: str) -> dict:
+        """
+        Получение роли по ID
+        :param role_id: ID роли
+        :return: Словарь, где каждый словарь представляет роль
+        """
+        # Авторизуемся
+        self.client.login()
+
+        # Выполнение GET-запроса к API, возвращающего данные о роли по ID
+        xml_data = self.client.get(f'/resto/api/employees/roles/byId/{role_id}')
+
+        # Отпускаем авторизацию
+        self.client.logout()
+
+        # Преобразование XML-данных в словарь
+        dict_data = xmltodict.parse(xml_data.text)
+
+        # Извлечение роли
+        role = dict_data['role']
+
+        return role
