@@ -1,4 +1,4 @@
-from iiko_api import BaseClient
+from iiko_api.core import BaseClient
 import xmltodict
 
 

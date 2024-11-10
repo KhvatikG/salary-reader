@@ -1,12 +1,12 @@
 from sqlalchemy.orm import Session
 
 from app.models import Employee, Department
-from iiko_api import client
+from iiko_api import iiko_api
 
 
 def update_employees_from_api(department_id: str, session: Session):
     try:
-        employees_from_api = client.employees.get_employees_by_department(department_id)
+        employees_from_api = iiko_api.employees.get_employees_by_department(department_id)
     except Exception as e:
         raise Exception(f"Ошибка получения работников для отдела {department_id}: {e}")
 
@@ -21,7 +21,7 @@ def update_employees_from_api(department_id: str, session: Session):
 
         if role_id not in roles_dict:
             try:
-                role_name = client.roles.get_role_by_id(role_id)['name']
+                role_name = iiko_api.roles.get_role_by_id(role_id)['name']
                 roles_dict[role_id] = role_name
             except Exception as e:
                 raise Exception(f"Ошибка получения роли по id {role_id}: {e}")
