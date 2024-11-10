@@ -26,10 +26,7 @@ class EmployeesEndpoints:
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
 
-        # Извлечение списка сотрудников из словаря
-        employees = dict_data['employees']['employee']
-
-        return employees
+        return dict_data['employees']['employee']
 
     def get_employees_by_department(self, department_code: str) -> list[dict]:
         """
@@ -48,10 +45,7 @@ class EmployeesEndpoints:
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
 
-        # Извлечение списка сотрудников из словаря
-        employees = dict_data['employees']['employee']
-
-        return employees
+        return dict_data['employees']['employee']
 
 
 class RolesEndpoints:
@@ -78,10 +72,7 @@ class RolesEndpoints:
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
 
-        # Извлечение списка ролей из словаря
-        roles = dict_data['employeeRoles']['role']
-
-        return roles
+        return dict_data['employeeRoles']['role']
 
     def get_role_by_id(self, role_id: str) -> dict:
         """
@@ -101,7 +92,4 @@ class RolesEndpoints:
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
 
-        # Извлечение роли
-        role = dict_data['role']
-
-        return role
+        return dict_data['role']
