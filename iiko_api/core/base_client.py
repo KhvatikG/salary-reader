@@ -50,20 +50,20 @@ class BaseClient:
             try:
                 response: Response = func(*args, **kwargs)
                 response.raise_for_status()
-                logger.debug(f"Request URL: {response.request.url}\n"
-                            f"Request Method: {response.request.method}\n"
-                            f"Request Body: {response.request.body}\n"
-                            f"Response Body: {response.text}\n"
+                logger.debug(f":\n  Request URL: {response.request.url}\n"
+                            f"  Request Method: {response.request.method}\n"
+                            f"  Request Body: {response.request.body}\n"
+                            f"  Response Body: {response.text}\n"
                              )
                 return response
             except HTTPError as http_error:
                 logger.error(f"HTTP error: {http_error} - Status code: {http_error.response.status_code}")
-                logger.debug(f"Request URL: {http_error.response.url}\n"
-                            f"Request Method: {http_error.response.request.method}\n"
-                            f"Request Headers: {http_error.response.request.headers}\n"
-                            f"Request Body: {http_error.response.request.body}\n"
-                            f"Response Headers: {http_error.response.headers}\n"
-                            f"Response Body: {http_error.response.text}\n"
+                logger.debug(f"\n  Request URL: {http_error.response.url}\n"
+                            f"  Request Method: {http_error.response.request.method}\n"
+                            f"  Request Headers: {http_error.response.request.headers}\n"
+                            f"  Request Body: {http_error.response.request.body}\n"
+                            f"  Response Headers: {http_error.response.headers}\n"
+                            f"  Response Body: {http_error.response.text}\n"
                             )
             except ConnectionError as connection_error:
                 logger.error(f"Connection error: {connection_error}")
