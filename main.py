@@ -404,12 +404,14 @@ class SalaryReader(QMainWindow):
         Функция заполнения таблицы сотрудников.
         Заполняет таблицу сотрудниками для выбранной роли.
         """
+        current_department_id = str(get_department_code(self.ui.department))
+
         # Обновляем данные по работникам во внутренней БД
         with get_session() as session:
             try:  # TODO: Добавить кеширование чтобы не засыпать iiko запросами
-                pass  # DEBUG Отключил запросы в iiko
-                # update_employees_from_api(department_id=1, session=session)
-                #session.commit()  # Сохраняем изменения, если всё успешно
+                #pass  # DEBUG Отключил запросы в iiko
+                update_employees_from_api(department_id=current_department_id, session=session)
+                session.commit()  # Сохраняем изменения, если всё успешно
             except Exception as e:
                 session.rollback()  # Откатываем изменения в случае ошибки
                 print(f"[fill_employees_table]Ошибка при обновлении данных сотрудников: {e}")
