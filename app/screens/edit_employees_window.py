@@ -111,8 +111,8 @@ class EditEmployeesWindow(QDialog, Ui_Dialog):
 
     def drag_enter_event(self, event, table: QTableWidget):
         """
-        Событие при входе курсора в таблицу.
-        :param event: Данные события
+        Событие при входе курсора в таблицу при перетаскивании.
+        :param event: Данные события перетаскивания.
         :param table: Экземпляр таблицы передаваемый через lambda
         :return:
         """
@@ -135,8 +135,9 @@ class EditEmployeesWindow(QDialog, Ui_Dialog):
         print(f"Получено: {event_data}")
 
         # Получаем id работников уже находящихся в таблице table
-        table_ids = [table.item(row, 4).text() for row in range(table.rowCount())]
+        table_ids = {table.item(row, 4).text() for row in range(table.rowCount())}
         print(table_ids)
+        print(type(table_ids))
 
 
         if event_data["source_data_table"] != table.objectName():

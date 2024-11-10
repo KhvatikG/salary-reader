@@ -15,11 +15,12 @@
   </property>
   <property name="styleSheet">
    <string notr="true">background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgba(81, 0, 135, 255), stop:0.427447 rgba(41, 61, 132, 235), stop:1 rgba(155, 79, 165, 255));
-</string>
+
+color: white;</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0" colspan="4">
-    <widget class="QFrame" name="frame_edit_employes_in_role">
+    <widget class="QFrame" name="frame_edit_employees_in_role">
      <property name="styleSheet">
       <string notr="true">background-color: rgba(255, 255, 255, 30);
 border: 1px solid rgba(255, 255, 255, 40);
@@ -30,7 +31,7 @@ color: white;</string>
       <item>
        <layout class="QVBoxLayout" name="layout_all_employees">
         <item>
-         <widget class="QLabel" name="label_all_employeees">
+         <widget class="QLabel" name="label_all_employees">
           <property name="styleSheet">
            <string notr="true">color: white;
 font-weight: bold;
@@ -39,7 +40,7 @@ background-color: none;
 border: none;</string>
           </property>
           <property name="text">
-           <string>Все работники:</string>
+           <string>Все сотрудники:</string>
           </property>
          </widget>
         </item>
@@ -52,6 +53,14 @@ border: none;</string>
         </item>
         <item>
          <widget class="QTableWidget" name="table_all_employees">
+          <property name="styleSheet">
+           <string notr="true">QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    }
+    QHeaderView::section {
+        padding: 3px;  
+    }</string>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
           </property>
@@ -67,12 +76,18 @@ border: none;</string>
           <property name="defaultDropAction">
            <enum>Qt::DropAction::MoveAction</enum>
           </property>
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
           </property>
           <property name="sortingEnabled">
            <bool>true</bool>
           </property>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
@@ -132,9 +147,9 @@ background-color: rgba(255, 255, 255, 70)
        </layout>
       </item>
       <item>
-       <layout class="QVBoxLayout" name="layout_role_employes">
+       <layout class="QVBoxLayout" name="layout_role_employees">
         <item>
-         <widget class="QLabel" name="label_employes_in_role">
+         <widget class="QLabel" name="label_employees_in_role">
           <property name="styleSheet">
            <string notr="true">color: white;
 font-weight: bold;
@@ -143,12 +158,20 @@ background-color: none;
 border: none;</string>
           </property>
           <property name="text">
-           <string>Работники в выбранной роли:</string>
+           <string>Сотрудники в выбранной программе мотивации:</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QTableWidget" name="table_role_employes">
+         <widget class="QTableWidget" name="table_role_employees">
+          <property name="styleSheet">
+           <string notr="true">QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    }
+    QHeaderView::section {
+        padding: 3px;  
+    }</string>
+          </property>
           <property name="editTriggers">
            <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
           </property>
@@ -167,6 +190,12 @@ border: none;</string>
           <property name="selectionBehavior">
            <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
           </property>
+          <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+           <bool>true</bool>
+          </attribute>
+          <attribute name="horizontalHeaderStretchLastSection">
+           <bool>true</bool>
+          </attribute>
           <attribute name="verticalHeaderVisible">
            <bool>false</bool>
           </attribute>
