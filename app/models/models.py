@@ -8,8 +8,8 @@ Base = declarative_base()
 association_table = Table(
     'employee_department_association',
     Base.metadata,
-    Column('employee_id', Integer, ForeignKey('employees.id')),
-    Column('department_code', Integer, ForeignKey('departments.code'))
+    Column('employee_id', String, ForeignKey('employees.id')),
+    Column('department_code', String, ForeignKey('departments.code'))
 )
 
 

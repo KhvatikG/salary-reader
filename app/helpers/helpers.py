@@ -61,7 +61,7 @@ def set_departments(departments_combobox: QComboBox, departments_list: list[Depa
         departments_combobox.addItem(text, data)
 
 
-def get_department_code(department: QComboBox) -> int | None:
+def get_department_code(department: QComboBox) -> str | None:
     """
     Возвращает код отдела, хранящийся в скрытом поле.
     :param department: Ui элемент отдела

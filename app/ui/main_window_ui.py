@@ -179,8 +179,9 @@ class Ui_MainWindow(object):
         self.table_motivate_settings.setAutoFillBackground(False)
         self.table_motivate_settings.setStyleSheet(u"QTableWidget {\n"
 "        gridline-color: rgba(255, 255, 255, 70);\n"
-"    }\n"
-"    QHeaderView::section {\n"
+"    };\n"
+"\n"
+"QHeaderView::section {\n"
 "        padding: 3px;  \n"
 "    }")
         self.table_motivate_settings.setFrameShape(QFrame.Shape.StyledPanel)
@@ -333,6 +334,12 @@ class Ui_MainWindow(object):
         self.date_from = QDateEdit(self.salary_panel)
         self.date_from.setObjectName(u"date_from")
         self.date_from.setStyleSheet(u"")
+        self.date_from.setWrapping(False)
+        self.date_from.setProperty(u"showGroupSeparator", False)
+        self.date_from.setDateTime(QDateTime(QDate(2024, 10, 29), QTime(0, 0, 0)))
+        self.date_from.setTime(QTime(0, 0, 0))
+        self.date_from.setMinimumDate(QDate(2020, 1, 1))
+        self.date_from.setCalendarPopup(True)
 
         self.horizontalLayout_3.addWidget(self.date_from)
 
@@ -350,6 +357,12 @@ class Ui_MainWindow(object):
         self.date_to = QDateEdit(self.salary_panel)
         self.date_to.setObjectName(u"date_to")
         self.date_to.setStyleSheet(u"")
+        self.date_to.setDateTime(QDateTime(QDate(2024, 11, 12), QTime(0, 0, 0)))
+        self.date_to.setTime(QTime(0, 0, 0))
+        self.date_to.setMinimumDateTime(QDateTime(QDate(2020, 1, 1), QTime(0, 0, 0)))
+        self.date_to.setMinimumDate(QDate(2020, 1, 1))
+        self.date_to.setMinimumTime(QTime(0, 0, 0))
+        self.date_to.setCalendarPopup(True)
 
         self.horizontalLayout_3.addWidget(self.date_to)
 
@@ -387,8 +400,24 @@ class Ui_MainWindow(object):
 
         self.salar_table = QTableWidget(self.main_frame)
         self.salar_table.setObjectName(u"salar_table")
+        font1 = QFont()
+        font1.setBold(True)
+        self.salar_table.setFont(font1)
         self.salar_table.setStyleSheet(u"background-color: rgba(255, 255, 255, 30);\n"
-"border-radius: 7px;")
+"border-radius: 7px;\n"
+"\n"
+"QTableWidget {\n"
+"        gridline-color: rgba(255, 255, 255, 70);\n"
+"    };\n"
+"\n"
+"QHeaderView::section {\n"
+"        padding: 3px;  \n"
+"    };\n"
+"\n"
+"color: white;")
+        self.salar_table.horizontalHeader().setProperty(u"showSortIndicator", True)
+        self.salar_table.horizontalHeader().setStretchLastSection(True)
+        self.salar_table.verticalHeader().setVisible(False)
 
         self.verticalLayout.addWidget(self.salar_table)
 
@@ -426,6 +455,6 @@ class Ui_MainWindow(object):
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e:", None))
         self.refresh_salary.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c", None))
         self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0447\u0430\u0442\u044c", None))
-        self.get_full_salary_blanc.setText(QCoreApplication.translate("MainWindow", u"\u041f\u043e\u0434\u0440\u043e\u0431\u043d\u044b\u0439 \u043e\u0442\u0447\u0435\u0442", None))
+        self.get_full_salary_blanc.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0432\u0435\u0440\u043a\u0430 \u0433\u0440\u0430\u0444\u0438\u043a\u0430", None))
     # retranslateUi
 

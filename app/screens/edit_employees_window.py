@@ -269,27 +269,42 @@ class EditEmployeesWindow(QDialog, Ui_Dialog):
 
         with get_session() as session:
             # Получаем уже привязанных к данной роли сотрудников
-            assigned_employees = session.query(Employee).filter(Employee.motivation_program_id == current_role_id)
+            assigned_employees = session.query(Employee).filter(Employee.motivation_program_id == current_role_id).all()
+
             # Получаем список id сотрудников из таблицы
             table_employees_id = [self.table_role_employees.item(row, 4).text() for row in
                                   range(self.table_role_employees.rowCount())]
+
             # Проверяем не исключили ли уже существующих из таблицы
             for assigned_employee in assigned_employees:
-                if assigned_employee.id not in table_employees_id:  # Если исключили, то отвязываем
+                print(assigned_employee.name)
+                if assigned_employee.id not in table_employees_id:
+                    # Если сотрудника уже нет в таблице, то отвязываем его
                     assign_motivation_program(
                         session=session, employee_id=assigned_employee.id, motivation_program_id=None)
+                    print(f"Отвязка {assigned_employee.name}")
 
             current_role = session.query(MotivationProgram).filter(MotivationProgram.id == current_role_id).first()
             current_role_name = current_role.name
+            print(f"Выбрана роль {current_role_name}")
 
             for row in range(self.table_role_employees.rowCount()):
                 employee_id = self.table_role_employees.item(row, 4).text()
                 employee = session.query(Employee).filter(Employee.id == employee_id).first()
+
+                print(f"Строка {row} сотрудник {employee.name}")
+
+                if not employee:
+                    print(f"Сотрудник с id {employee_id} отсутствует в базе")
+                    continue
+
                 if not employee.motivation_program:  # Если нет связи с ролями, то добавляем.
                     assign_motivation_program(
                         session=session, employee_id=employee_id, motivation_program_id=current_role_id)
+                    print(f"Добавление сотрудника {employee.name} в программу {current_role_name}")
                 else:  # Если сотрудник уже связан с другой ролью, то спрашиваем заменить или оставить его как есть.
                     if employee.motivation_program.id != int(current_role_id):
+                        print(f"Сотрудник {employee.name} уже связан с другой ролью ")
                         employee_name = employee.name
                         employee_role_name = employee.motivation_program.name
                         # Выбрасываем окно с предупреждением
@@ -312,7 +327,8 @@ class EditEmployeesWindow(QDialog, Ui_Dialog):
                         if reply == QMessageBox.StandardButton.Yes:
                             assign_motivation_program(
                                 session=session, employee_id=employee_id, motivation_program_id=current_role_id)
+                            print(f"Замена сотрудника {employee.name} на программу {current_role_name}")
                         else:
                             continue
-
+            session.commit()
             self.close()

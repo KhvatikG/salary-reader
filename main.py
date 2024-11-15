@@ -1,13 +1,12 @@
-# TODO: Перенести логику changes_made полностью в контроллер table_controller
-
 import sys
 from typing import Type
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIntValidator
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
     QTableWidgetItem, QListWidgetItem, QAbstractItemView
 
+from app.drivers.attendances import AttendancesDataDriver
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
 from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear, \
     get_employees_by_motivation_program_id
@@ -36,9 +35,10 @@ class NumericDelegate(QStyledItemDelegate):
 class SalaryReader(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.changes_made = False  # При изменении данных в таблице, флаг становится True, при сохранении/отмене - False
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.DEBUG = False
+        self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
 
         self.threshold_table_controller = ThresholdsTableController(self.ui.table_motivate_settings)
 
@@ -86,10 +86,35 @@ class SalaryReader(QMainWindow):
         # Таблица сотрудников привязанных к роли
         self.ui.employees_table.setColumnCount(4)
         self.ui.employees_table.setHorizontalHeaderLabels(["ФИО", "Должность", "Отдел", "Табельный"])
-        self.ui.employees_table.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.fill_employees_table(self.ui.roles_list.currentItem().data(Qt.ItemDataRole.UserRole)['role_id'])
+        self.ui.employees_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        current_role = self.ui.roles_list.currentItem()
+        if current_role:
+            current_role_data = current_role.data(Qt.ItemDataRole.UserRole)
+            self.fill_employees_table(current_role_data['role_id'])
 
         self.ui.button_employees_edit.clicked.connect(self.open_edit_employees_window)
+
+        # Сводная таблица зарплат
+        self.ui.date_from.setDate(QDate.currentDate())
+        self.ui.date_to.setDate(QDate.currentDate())
+        self.ui.salar_table.setColumnCount(9)
+        self.ui.salar_table.setHorizontalHeaderLabels(
+            ["ФИО", "Полное имя", "Сумма ЗП", "Кол-во полных смен",
+             "Кол-во неполных смен", "Роль", "Отдел",  "Табельный", "id"])
+
+        self.ui.refresh_salary.clicked.connect(self.update_and_render_salary_table)
+
+    def update_and_render_salary_table(self):
+        """
+        Обновление данных в таблице зарплат
+        """
+        current_department_code = get_department_code(self.ui.department)
+        date_from = self.ui.date_from.date().toPython()
+        date_to = self.ui.date_to.date().toPython()
+
+        self.salary_table_controller.update_data(
+            department_code=current_department_code, date_from=date_from, date_to=date_to)
+        self.salary_table_controller.render_general_table()
 
     def set_current_roles(self):
         """
@@ -328,8 +353,9 @@ class SalaryReader(QMainWindow):
         with get_session() as session:
             current_department_id = str(get_department_code(self.ui.department))
             try:
-                update_employees_from_api(department_id=current_department_id, session=session)
-                session.commit()  # Сохраняем изменения, если всё успешно
+                if not self.DEBUG:
+                    update_employees_from_api(department_id=current_department_id, session=session)
+                    session.commit()  # Сохраняем изменения, если всё успешно
             except Exception as e:
                 session.rollback()  # Откатываем изменения в случае ошибки
                 print(f"[fill_employees_table]Ошибка при обновлении данных сотрудников: {e}")

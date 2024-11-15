@@ -11,11 +11,10 @@ from typing import Any, Type
 from sqlalchemy.orm import Session
 
 from app.core.logging_config import get_logger
-
-logger = get_logger(name=__name__)
-
 from app.db import get_session
 from app.models import Employee, Department, MotivationProgram
+
+logger = get_logger(name=__name__)
 
 
 def save_employee(session: Session, employee_data: dict[str, Any]) -> None:
@@ -57,22 +56,24 @@ def assign_motivation_program(session: Session, employee_id: str, motivation_pro
     :param session: SQLAlchemy сессия для взаимодействия с базой данных.
     :param employee_id: ID сотрудника, которому нужно назначить мотивационную программу.
     :param motivation_program_id: ID мотивационной программы, которую нужно назначить.
+        Если None, то отвязывает мотивационную программу.
     """
     # Получаем сотрудника по ID
     employee = session.query(Employee).filter_by(id=employee_id).first()
     if not employee:
         raise ValueError("Сотрудник с указанным ID не найден.")
 
-    # Получаем мотивационную программу по ID
-    motivation_program = session.query(MotivationProgram).filter_by(id=motivation_program_id).first()
-    if not motivation_program:
-        raise ValueError("Мотивационная программа с указанным ID не найдена.")
+    if motivation_program_id is None:
+        # Открепляем мотивационную программу
+        employee.motivation_program = None
+    else:
+        # Получаем мотивационную программу по ID
+        motivation_program = session.query(MotivationProgram).filter_by(id=motivation_program_id).first()
+        if not motivation_program:
+            raise ValueError("Мотивационная программа с указанным ID не найдена.")
 
-    # Назначаем мотивационную программу сотруднику
-    employee.motivation_program = motivation_program
-
-    # Сохраняем изменения
-    session.commit()
+        # Назначаем мотивационную программу сотруднику
+        employee.motivation_program = motivation_program
 
 
 def delete_motivation_program(role_id):
@@ -106,7 +107,7 @@ def delete_motivation_program(role_id):
             raise "Мотивационная программа не найдена"
 
 
-def get_current_roles_by_department_code(department_code: int) -> list[MotivationProgram]:
+def get_current_roles_by_department_code(department_code: str) -> list[MotivationProgram]:
     """
     Возвращает список ролей, привязанных к данному отделу.
     :param department_code: Код отдела, для которого нужно получить список ролей.
@@ -139,3 +140,13 @@ def get_employees_by_motivation_program_id(session: Session, motivation_program_
         MotivationProgram.id == motivation_program_id).all()
 
     return employees
+
+
+def get_department_by_code(session: Session, department_code: str) -> Type[Department]:
+    """
+    Возвращает отдел по его ID.
+    :param session: Session SQLAlchemy.
+    :param department_code: Код отдела.
+    :return: Отдел.(Department)
+    """
+    return session.query(Department).filter_by(code=department_code).one_or_none()

@@ -244,8 +244,9 @@ border: none;</string>
                <property name="styleSheet">
                 <string notr="true">QTableWidget {
         gridline-color: rgba(255, 255, 255, 70);
-    }
-    QHeaderView::section {
+    };
+
+QHeaderView::section {
         padding: 3px;  
     }</string>
                </property>
@@ -470,6 +471,39 @@ border: none;</string>
             <property name="styleSheet">
              <string notr="true"/>
             </property>
+            <property name="wrapping">
+             <bool>false</bool>
+            </property>
+            <property name="showGroupSeparator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="dateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2024</year>
+              <month>10</month>
+              <day>29</day>
+             </datetime>
+            </property>
+            <property name="time">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="minimumDate">
+             <date>
+              <year>2020</year>
+              <month>1</month>
+              <day>1</day>
+             </date>
+            </property>
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -494,6 +528,50 @@ border: none;</string>
             <property name="styleSheet">
              <string notr="true"/>
             </property>
+            <property name="dateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2024</year>
+              <month>11</month>
+              <day>12</day>
+             </datetime>
+            </property>
+            <property name="time">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="minimumDateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2020</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="minimumDate">
+             <date>
+              <year>2020</year>
+              <month>1</month>
+              <day>1</day>
+             </date>
+            </property>
+            <property name="minimumTime">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
            </widget>
           </item>
           <item>
@@ -513,7 +591,7 @@ border: none;</string>
           <item>
            <widget class="QPushButton" name="get_full_salary_blanc">
             <property name="text">
-             <string>Подробный отчет</string>
+             <string>Сверка графика</string>
             </property>
            </widget>
           </item>
@@ -529,10 +607,34 @@ border: none;</string>
        </item>
        <item>
         <widget class="QTableWidget" name="salar_table">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="styleSheet">
           <string notr="true">background-color: rgba(255, 255, 255, 30);
-border-radius: 7px;</string>
+border-radius: 7px;
+
+QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    };
+
+QHeaderView::section {
+        padding: 3px;  
+    };
+
+color: white;</string>
          </property>
+         <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
         </widget>
        </item>
       </layout>

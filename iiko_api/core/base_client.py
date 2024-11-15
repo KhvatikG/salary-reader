@@ -71,7 +71,7 @@ class BaseClient:
                 logger.error(f"Timeout error: {timeout_error}")
             except RequestException as request_error:
                 logger.error(f"Request error: {request_error}")
-            raise Exception # Повторное возбуждение исключения для логики обработки
+            raise # Повторное возбуждение исключения для логики обработки
 
         return wrapper
 
