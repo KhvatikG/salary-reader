@@ -27,7 +27,7 @@ def fill_employees_table(table_widget, employees_list: list[Employee]):
 
         # Выравнивание текста по центру
         for col in range(3):
-            table_widget.item(row, col).setTextAlignment(Qt.AlignCenter)
+            table_widget.item(row, col).setTextAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
 def get_icon_from_svg(path: str) -> QIcon:

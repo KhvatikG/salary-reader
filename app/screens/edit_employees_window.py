@@ -102,8 +102,8 @@ class EditEmployeesWindow(QDialog, Ui_Dialog):
         # Создаем скриншот выделенных строк для отображения рядом с курсором
         pixmap = self.create_drag_pixmap(table)
         drag.setPixmap(pixmap)
-        result = drag.exec(Qt.MoveAction)
-        if result == Qt.MoveAction:
+        result = drag.exec(Qt.DropAction.MoveAction)
+        if result == Qt.DropAction.MoveAction:
             print("Перетащили")
             self.remove_rows_from_table(table)
         else:
