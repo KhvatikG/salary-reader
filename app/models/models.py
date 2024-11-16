@@ -38,6 +38,9 @@ class Department(Base):
         back_populates="department"
     )
 
+    def __repr__(self):
+        return f"<Department(id={self.id}, code='{self.code}', name='{self.name}')>"
+
 
 class Employee(Base):
     """Таблица, представляющая сотрудников.
@@ -48,7 +51,7 @@ class Employee(Base):
 
     id = Column(String, primary_key=True)
     name = Column(String(250), nullable=False)
-    code = Column(Integer, unique=True)
+    code = Column(String, unique=True)
     position = Column(String(250), nullable=False)
 
     motivation_program_id = Column(Integer, ForeignKey('motivation_programs.id'))
@@ -61,6 +64,10 @@ class Employee(Base):
     )
     # Связь с текущей мотивационной программой
     motivation_program = relationship("MotivationProgram", back_populates="employees")
+
+    def __repr__(self):
+        return (f"<Employee(id={self.id}, name='{self.name}', code='{self.code}', position='{self.position}',"
+                f"departments='{self.departments}',motivation_program={self.motivation_program})>")
 
 
 class MotivationProgram(Base):
@@ -75,7 +82,7 @@ class MotivationProgram(Base):
     name = Column(String(250), nullable=False)
 
     # Внешний ключ для связи с отделом
-    department_code = Column(Integer, ForeignKey('departments.code'), nullable=False)
+    department_code = Column(String, ForeignKey('departments.code'), nullable=False)
 
     # Один-ко-многим связь с сотрудниками
     employees = relationship(
