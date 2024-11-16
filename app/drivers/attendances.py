@@ -1,4 +1,5 @@
 import enum
+import logging
 from datetime import datetime, date, timedelta
 from typing import AnyStr, Union
 from uuid import UUID
@@ -11,9 +12,13 @@ from app.models import MotivationProgram, MotivationThreshold, Employee
 from app.models.control_models import get_department_by_code
 from iiko_api import iiko_api
 
+from iiko_api.core.config.logging_config import get_logger
+
 # TODO: Вынести в settings(Для настроек нужна отдельная таблица в бд)
 FULL_SHIFT_HOURS = 10
 HALF_SHIFT_HOURS = 5
+
+logger = get_logger(__name__, level="DEBUG")
 
 
 class ShiftType(enum.Enum):
@@ -68,6 +73,18 @@ class Attendance:
 class AttendancesList:
     def __init__(self):
         self.attendances: dict[EmployeeId, dict[date, list[Attendance]]] = {}
+
+    def __len__(self) -> int:
+        """
+        Возвращает количество явок в списке
+        :return: Кол-во хранящихся явок.
+            Возвращает 0, если список пуст.
+        """
+        _len = 0
+        for employee_id in self.attendances:
+            for date_ in self.attendances[employee_id]:
+                _len += len(self.attendances[employee_id][date_])
+        return _len
 
     def add_attendance(self, attendance: Attendance) -> None:
         if attendance.employee_id in self.attendances:
@@ -141,7 +158,8 @@ class AttendancesDataDriver:
         :param date_to: Дата окончания периода
         :param department_code: Код отдела
         """
-        # TODO: сделать проверку на дату
+        logger.info(f"[update_data] Запущено обновление данных")
+
         if date_from <= date_to:
             with get_session() as session:
                 department = get_department_by_code(session, department_code)
@@ -160,11 +178,14 @@ class AttendancesDataDriver:
             )
         else:
             raise ValueError("Дата начала периода больше даты окончания периода")
+        logger.info(f"[update_data] Обновление данных завершено: \n  {self.api_attendances=}\n\n  {self.sales=}\n\n")
 
     def prepare_data(self) -> None:
         """
         Подготавливает данные для выгрузки в QTableWidget.
         """
+        logger.info(f"Запущенна подготовка данных... \n  {self.api_attendances=}\n")
+        self.employees_attendances = AttendancesList()
         for attendance in self.api_attendances:
             print(attendance)
             date_from = datetime.fromisoformat(attendance['personalDateFrom'])
@@ -175,7 +196,12 @@ class AttendancesDataDriver:
             # Если открыта в промежуток между 07:00 и 22:00
             if date_from.hour >= 7 and date_to.hour <= 22:
                 attendance_obj = Attendance(employee_id=employee_id, date_from=date_from, date_to=date_to)
+                logger.debug(f"Условия по расписанию выполнены создана явка:"
+                             f"\n  {employee_id=}\n  {date_from=}\n  {date_to=}\n  {attendance_obj=}")
                 self.employees_attendances.add_attendance(attendance_obj)
+                logger.debug(f"Явка {attendance_obj} добавлена в список явок, в нем {len(self.employees_attendances)} явок.")
+        logger.debug(f"Подготовка явок окончена:\n"
+                     f"  кол-во явок в списке:{len(self.employees_attendances)}\n  Явки{self.employees_attendances.attendances}\n\n")
 
     def calculate_salary(self, employee_id: EmployeeId, date_: date, shift_type: ShiftType) -> int:
         """
@@ -185,6 +211,7 @@ class AttendancesDataDriver:
         :param shift_type: Тип смены: полный день или половина дня full | half
         :return: Вознаграждение
         """
+
         with get_session() as session:
             # Найти сотрудника и его мотивационную программу
             employee = session.query(Employee).filter(Employee.id == employee_id).first()
@@ -217,7 +244,7 @@ class AttendancesDataDriver:
                         return threshold.salary
                     case ShiftType.HALF:
                         print(f"Получаем половину {threshold.salary / 2}")
-                        return threshold.salary / 2
+                        return int(threshold.salary / 2)
 
             return 0
 
@@ -227,6 +254,7 @@ class AttendancesDataDriver:
         """
         rows = []
         for employee_id in self.employees_attendances.attendances:
+            # TODO: Получать сотрудников из внутренней базы данных
             employee_ = iiko_api.employees.get_employee_by_id(employee_id)
 
             if not employee_:
@@ -274,9 +302,12 @@ class AttendancesDataDriver:
                     raise ValueError(f"Дата {date_} не найдена в отчете о продажах")
                 total_salary += salary_
 
+            first_name = employee_.get('firstName', " ")
+            last_name = employee_.get('lastName', " ")
+
             employee_attendances_data.update({
                 "name": employee_['name'],
-                "full_name": employee_['firstName'] + ' ' + employee_['lastName'],
+                "full_name": first_name + ' ' + last_name,
                 "role": self.iiko_api.roles.get_role_by_id(employee_['mainRoleId'])['name'],
                 "code": employee_['code'],
                 "departments": " ".join(departments),
