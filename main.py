@@ -1,10 +1,15 @@
+# TODO: Подгрузку работников нужно проводить по открытию и по нажатию кнопки обновить(добавить в угол)
+
+import os
 import sys
 from typing import Type
 
+
 from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QIntValidator
+from PySide6.QtGui import QIntValidator, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidgetItem, QAbstractItemView
+    QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton
+from openpyxl.workbook import Workbook
 
 from app.drivers.attendances import AttendancesDataDriver
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
@@ -101,8 +106,14 @@ class SalaryReader(QMainWindow):
         self.ui.salar_table.setHorizontalHeaderLabels(
             ["ФИО", "Полное имя", "Сумма ЗП", "Кол-во полных смен",
              "Кол-во неполных смен", "Роль", "Отдел",  "Табельный", "id"])
+        self.ui.salar_table.setSortingEnabled(True)
 
         self.ui.refresh_salary.clicked.connect(self.update_and_render_salary_table)
+
+        excel_icon = QIcon('app/ui/icons/excel.svg')
+        self.excel_button = QPushButton(icon=excel_icon, parent=self.ui.salar_table)
+        self.excel_button.setGeometry(1, 1, 23, 23)
+        self.excel_button.clicked.connect(self.export_to_excel)
 
     def update_and_render_salary_table(self):
         """
@@ -127,6 +138,20 @@ class SalaryReader(QMainWindow):
         self.ui.roles_list.clear()
         # Получаем код выбранного отдела
         department_code = get_department_code(self.ui.department)
+
+        # Обновляем данные о работниках из iiko
+        # TODO: Получать при запуске, после обновлять только по кнопке
+        with get_session() as session:
+            try:
+                if not self.DEBUG:
+                    update_employees_from_api(department_code=department_code, session=session)
+                    session.commit()  # Сохраняем изменения, если всё успешно
+                    print(f"[set_current_roles] Сотрудники для отдела {department_code} обновлены")
+            except Exception as e:
+                session.rollback()  # Откатываем изменения в случае ошибки
+                print(f"[set_current_roles] Ошибка при обновлении данных сотрудников: {e}")
+                raise e
+
         # Получаем роли привязанные к выбранному отделу по коду отдела
         current_roles = get_current_roles_by_department_code(department_code)
         # Заполняем список ролей
@@ -351,14 +376,6 @@ class SalaryReader(QMainWindow):
             self.ui.table_motivate_settings.blockSignals(False)
             return
         with get_session() as session:
-            current_department_id = str(get_department_code(self.ui.department))
-            try:
-                if not self.DEBUG:
-                    update_employees_from_api(department_id=current_department_id, session=session)
-                    session.commit()  # Сохраняем изменения, если всё успешно
-            except Exception as e:
-                session.rollback()  # Откатываем изменения в случае ошибки
-                print(f"[fill_employees_table]Ошибка при обновлении данных сотрудников: {e}")
 
             self.ui.table_motivate_settings.horizontalHeaderItem(2).setText(current_role_id)
 
@@ -491,6 +508,44 @@ class SalaryReader(QMainWindow):
         self.edit_employees_window.exec()
         self.fill_employees_table(motivation_program_id)
         print("Закрыто")
+
+    def export_to_excel(self):
+        """
+        Экспортирует данные из сводной таблицы зарплат в Excel
+        """
+        # Создаем новый документ
+        wb = Workbook()
+        ws = wb.active
+        ws.Name = "Сводная таблица зарплат"
+        ws.cell(1, 1).value = "ФИО"
+        ws.cell(1, 2).value = "Полное имя"
+        ws.cell(1, 3).value = "Сумма зарплаты"
+        ws.cell(1, 4).value = "Кол-во полных смен"
+        ws.cell(1, 5).value = "Кол-во неполных смен"
+        ws.cell(1, 6).value = "Должность"
+        ws.cell(1, 7).value = "Отдел"
+        ws.cell(1, 8).value = "Табельный номер"
+        ws.cell(1, 9).value = "id"
+
+        ws.column_dimensions['A'].width = 20
+        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['C'].width = 20
+        ws.column_dimensions['D'].width = 20
+        ws.column_dimensions['E'].width = 23
+        ws.column_dimensions['F'].width = 20
+        ws.column_dimensions['G'].width = 20
+        ws.column_dimensions['H'].width = 20
+        ws.column_dimensions['I'].width = 20
+
+
+        for row in range(self.ui.salar_table.rowCount()):
+            for col in range(self.ui.salar_table.columnCount()):
+                item = self.ui.salar_table.item(row, col)
+                ws.cell(row=row + 2, column=col+ 1).value = item.text()
+
+        wb.save("salary_table.xlsx")
+
+        os.startfile("salary_table.xlsx")
 
 
 if __name__ == '__main__':
