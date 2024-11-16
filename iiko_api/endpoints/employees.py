@@ -53,7 +53,7 @@ class EmployeesEndpoints:
         if dict_data.get('departmentCodes') and not isinstance(dict_data.get('departmentCodes'), list):
             dict_data['departmentCodes'] = [dict_data.get('departmentCodes')]
         else:
-            dict_data['departmentCodes'] = None
+            dict_data['departmentCodes'] = []
 
         return dict_data
 
@@ -62,19 +62,24 @@ class EmployeesEndpoints:
         Получение списка сотрудников по коду отдела
         :return: список словарей, где каждый словарь представляет сотрудника привязанного к отделу
         """
-        # Авторизация
-        self.client.login()
 
         # Выполнение GET-запроса к API, возвращающего данные о сотрудниках
         xml_data = self.client.get(f'/resto/api/employees/byDepartment/{department_code}')
 
-        # Отпускаем авторизацию
-        self.client.logout()
-
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
 
-        return dict_data['employees']['employee']
+        employees = []
+
+        for employee in dict_data['employees']['employee']:
+            if employee.get('departmentCodes') and not isinstance(employee.get('departmentCodes'), list):
+                employee['departmentCodes'] = [employee.get('departmentCodes')]
+            else:
+                employee['departmentCodes'] = []
+
+            employees.append(employee)
+
+        return employees
 
     def get_attendances_for_department(self, department_code: str, date_from: datetime, date_to: datetime) -> list[
         dict]:
@@ -122,14 +127,8 @@ class RolesEndpoints:
         Получение списка всех ролей
         :return: Список словарей, где каждый словарь представляет роль
         """
-        # Авторизуемся
-        self.client.login()
-
         # Выполнение GET-запроса к API, возвращающего данные о ролях
         xml_data = self.client.get('/resto/api/employees/roles/')
-
-        # Отпускаем авторизацию
-        self.client.logout()
 
         # Преобразование XML-данных в словарь
         dict_data = xmltodict.parse(xml_data.text)
