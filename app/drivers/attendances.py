@@ -222,7 +222,7 @@ class AttendancesDataDriver:
 
             # Получить мотивационную программу
             motivation_program = employee.motivation_program
-            print(f"[calculate_salary]Мотивационная программа {employee.name}")
+            print(f"[calculate_salary]Мотивационная программа {employee.name} (ID={employee.id})")
 
             # Извлечь выручку за заданную дату
             revenue = self.sales.get(date_, 0)
