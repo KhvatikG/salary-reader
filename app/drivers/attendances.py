@@ -1,5 +1,4 @@
 import enum
-import logging
 from datetime import datetime, date, timedelta
 from typing import AnyStr, Union
 from uuid import UUID
@@ -11,7 +10,6 @@ from app.db import get_session
 from app.models import MotivationProgram, MotivationThreshold, Employee
 from app.models.control_models import get_department_by_code
 from iiko_api import iiko_api
-
 from iiko_api.core.config.logging_config import get_logger
 
 # TODO: Вынести в settings(Для настроек нужна отдельная таблица в бд)
@@ -69,6 +67,9 @@ class Attendance:
         # Строка отражающая период явки
         self.attendance_string = f'{self.date_from.strftime("%H:%M")} - {self.date_to.strftime("%H:%M")}'
 
+    def __str__(self):
+        return f'Явка сотрудника {self.employee_id}: {self.attendance_string}'
+
 
 class AttendancesList:
     def __init__(self):
@@ -97,7 +98,7 @@ class AttendancesList:
 
     def get_general_row_data(self, employee_id: EmployeeId):
         """
-        Возвращает строку с агрегированными данными по всем явкам employee_id сохраненным в attendances
+        Возвращает строку таблицы с агрегированными данными по всем явкам employee_id сохраненным в attendances
 
         :param employee_id: Идентификатор сотрудника
         :return:
@@ -138,7 +139,12 @@ class AttendancesList:
 
         return employee_attendances_data
 
-    def get_employee_detailed_data(self, employee_id: EmployeeId):
+    def get_employee_detailed_data(self, employee_id: EmployeeId) -> dict[date, list[Attendance]]:
+        """
+        Возвращает данные по явкам сотрудника
+        :param employee_id: Идентификатор сотрудника в iiko
+        :return: Словарь с датами и явками в эти даты
+        """
         return self.attendances[employee_id]
 
 
@@ -187,7 +193,7 @@ class AttendancesDataDriver:
         logger.info(f"Запущенна подготовка данных... \n  {self.api_attendances=}\n")
         self.employees_attendances = AttendancesList()
         for attendance in self.api_attendances:
-            print(attendance)
+            logger.debug(f"Обработка явки:\n  {attendance=}")
             date_from = datetime.fromisoformat(attendance['personalDateFrom'])
             # Если у смены нет времени закрытия, то ставим время открытия(скорее всего это сегодняшняя смена)
             date_to = datetime.fromisoformat(attendance.get('personalDateTo', attendance['personalDateFrom']))
@@ -199,13 +205,20 @@ class AttendancesDataDriver:
                 logger.debug(f"Условия по расписанию выполнены создана явка:"
                              f"\n  {employee_id=}\n  {date_from=}\n  {date_to=}\n  {attendance_obj=}")
                 self.employees_attendances.add_attendance(attendance_obj)
-                logger.debug(f"Явка {attendance_obj} добавлена в список явок, в нем {len(self.employees_attendances)} явок.")
+                logger.debug(f"Явка {attendance_obj} добавлена в список явок,"
+                             f" в нем {len(self.employees_attendances)} явок.")
+            else:
+                logger.debug(f"Условия по расписанию НЕ выполнены, явка НЕ создана:\n"
+                             f"  {employee_id=}\n  {date_from=}\n  {date_to=}")
+
         logger.debug(f"Подготовка явок окончена:\n"
-                     f"  кол-во явок в списке:{len(self.employees_attendances)}\n  Явки{self.employees_attendances.attendances}\n\n")
+                     f"  кол-во явок в списке:{len(self.employees_attendances)}\n"
+                     f"  Явки{self.employees_attendances.attendances}\n\n")
 
     def calculate_salary(self, employee_id: EmployeeId, date_: date, shift_type: ShiftType) -> int:
         """
         Считает вознаграждение сотрудника по его мотивационной программе за определенную дату.
+
         :param employee_id: Id сотрудника
         :param date_: Дата
         :param shift_type: Тип смены: полный день или половина дня full | half
@@ -216,17 +229,22 @@ class AttendancesDataDriver:
             # Найти сотрудника и его мотивационную программу
             employee = session.query(Employee).filter(Employee.id == employee_id).first()
 
-            if not employee or not employee.motivation_program:
-                print(f"[calculate_salary]Сотрудник {employee_id} не найден или не имеет привязанных программ")
-                return 0
+            if not employee:
+                logger.warning(f"Сотрудник с id={employee_id} не найден")
+                return 0  # TODO: Почему возвращаем 0?
+
+            if not employee.motivation_program:
+                logger.warning(f"Сотрудник {employee.name} (ID={employee.id}) не имеет привязанных программ")
+                return 0  # TODO: Почему возвращаем 0?
 
             # Получить мотивационную программу
             motivation_program = employee.motivation_program
-            print(f"[calculate_salary]Мотивационная программа {employee.name} (ID={employee.id})")
+            logger.debug(f"Мотивационная программа {employee.name} (ID={employee.id}): "
+                         f"{motivation_program.name} (ID={motivation_program.id})")
 
             # Извлечь выручку за заданную дату
             revenue = self.sales.get(date_, 0)
-            print(f"[calculate_salary]Выручка за {date_}: {revenue}")
+            logger.debug(f"Выручка за {date_}: {revenue}")
 
             # Найти соответствующий порог мотивации
             threshold: MotivationThreshold = session.query(MotivationThreshold).filter(
@@ -235,15 +253,16 @@ class AttendancesDataDriver:
             ).order_by(MotivationThreshold.revenue_threshold.desc()).first()
 
             if threshold:
-                print(f"Порог {threshold.revenue_threshold=} {threshold.salary=} {threshold.id=}")
-                print(f"Выручка {revenue}")
-                print(f"Смена {shift_type}")
+                logger.debug(f"Порог при данной выручке для данной программы: "
+                             f"{threshold.revenue_threshold=} {threshold.salary=} {threshold.id=}")
+
+                logger.debug(f"Тип смены: {shift_type}")
                 match shift_type:
                     case ShiftType.FULL:
-                        print(f"Полная смена возвращаем {threshold.salary}")
+                        logger.debug(f"Полная смена возвращаем: {threshold.salary}")
                         return threshold.salary
                     case ShiftType.HALF:
-                        print(f"Получаем половину {threshold.salary / 2}")
+                        logger.debug(f"Пол смены получаем половину: {threshold.salary / 2}")
                         return int(threshold.salary / 2)
 
             return 0
@@ -263,11 +282,14 @@ class AttendancesDataDriver:
 
             if not employee_.get('departmentCodes', None):
                 # Если сотрудник не имеет департаментов(служебные аккаунты и менеджеры) пропускаем
+                logger.warning(f"Сотрудник {employee_id} не имеет департаментов")
                 continue
 
             if not employee_.get('mainRoleId', None):
                 # Если сотрудник не имеет роли в iiko пропускаем
                 # Подразумевается что всем кому считаем зп выделены роли в iiko
+                logger.warning(f"Сотрудник {employee_.get('name', 'Не удалось получить имя')}"
+                               f" (ID={employee_id}) не имеет роли в iiko")
                 continue
 
             with get_session() as session:
@@ -281,6 +303,8 @@ class AttendancesDataDriver:
 
                 if not motivation_program:
                     # Если нет программы мотивации, то пропускаем
+                    logger.warning(f"Сотрудник {employee_.get('name', 'Не удалось получить имя')}"
+                                   f" (ID={employee_id}) не имеет привязанных программ мотивации")
                     continue
 
             employee_attendances_data = self.employees_attendances.get_general_row_data(employee_id)
@@ -294,11 +318,12 @@ class AttendancesDataDriver:
 
                 if date_ in self.sales:
                     salary_ = self.calculate_salary(employee_id, date_, shift_type)
-                    print(f"ЗП за {date_}: {salary_}")
+                    logger.debug(f"ЗП за {date_}: {salary_}")
                 else:
-                    print(f"{type(date_)=}")
-                    print(f"{self.sales}")
-                    # TODO: Обработать это исключение в ui - выбросить окно
+                    logger.warning(f"Дата {date_} не найдена в отчете о продажах")
+                    logger.debug(f"Тип переменной даты: {type(date_)=}")
+                    logger.debug(f"Словарь в котором ищем дату:{self.sales}")
+                    # TODO: Создать кастомное исключение для этого и обработать это исключение в ui - выбросить окно
                     raise ValueError(f"Дата {date_} не найдена в отчете о продажах")
                 total_salary += salary_
 
@@ -380,19 +405,20 @@ class AttendancesDataDriver:
         employee_id = EmployeeId(employee_id)
         employee_attendances_data = self.employees_attendances.get_employee_detailed_data(employee_id)
 
+        logger.debug(f"Смены сотрудника {employee_id}:\n  {self.employees_shifts[employee_id]}")
+
         for date_, employee_attendance in employee_attendances_data.items():
             warning = False
-
+            logger.debug(f"Обрабатываем дату {date_}")
+            # Если количество явок за дату date_ больше 1
             if len(employee_attendance) > 1:
+                logger.debug(f"Обнаружено больше одной явки у {employee_id} за дату: {date_}")
                 warning = True
                 period = [attendance.attendance_string for attendance in employee_attendance]
                 period = "\n".join(period)
+                logger.debug(f"Строка периода явок сформирована: {period}")
             else:
                 period = employee_attendance[0].attendance_string
-            print("================================")
-            print(date_)
-            print(self.employees_shifts[employee_id])
-            print("================================")
 
             shift_type = self.get_shift_type(employee_id, date_)
             salary = self.calculate_salary(employee_id, date_, shift_type)
