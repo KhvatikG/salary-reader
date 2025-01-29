@@ -194,7 +194,7 @@ class AttendancesDataDriver:
             employee_id = EmployeeId(attendance['employeeId'])
             # TODO: Вынести расписание в настройки
             # Если открыта в промежуток между 07:00 и 22:00
-            if date_from.hour >= 7 and date_to.hour <= 22:
+            if date_from.hour >= 7 and date_from.hour <= 22:
                 attendance_obj = Attendance(employee_id=employee_id, date_from=date_from, date_to=date_to)
                 logger.debug(f"Условия по расписанию выполнены создана явка:"
                              f"\n  {employee_id=}\n  {date_from=}\n  {date_to=}\n  {attendance_obj=}")
