@@ -191,13 +191,27 @@ class AttendancesDataDriver:
         Подготавливает данные для выгрузки в QTableWidget.
         """
         logger.info(f"Запущенна подготовка данных... \n  {self.api_attendances=}\n")
+        # Пересоздаем список явок, чтобы отчистить от старых данных
         self.employees_attendances = AttendancesList()
         for attendance in self.api_attendances:
+            employee_id = EmployeeId(attendance['employeeId'])
+            # TODO: Дублирование кода, исправить, скорее всего можно просто удалить его повтор далее
+            with get_session() as session:
+                # Найти сотрудника и его мотивационную программу
+                employee = session.query(Employee).filter(Employee.id == employee_id).first()
+                if not employee:
+                    logger.warning(f"Сотрудник с ID={employee_id} не найден в базе данных")
+                    continue
+
+                if not employee.motivation_program:
+                    logger.warning(f"Сотрудник {employee.name} (ID={employee.id}) не имеет привязанных программ"
+                                   f"Не добавляем его в список отчищенных явок")
+                    continue
+
             logger.debug(f"Обработка явки:\n  {attendance=}")
             date_from = datetime.fromisoformat(attendance['personalDateFrom'])
             # Если у смены нет времени закрытия, то ставим время открытия(скорее всего это сегодняшняя смена)
             date_to = datetime.fromisoformat(attendance.get('personalDateTo', attendance['personalDateFrom']))
-            employee_id = EmployeeId(attendance['employeeId'])
             # TODO: Вынести расписание в настройки
             # Если открыта в промежуток между 07:00 и 22:00
             if 7 <= date_from.hour <= 22:
