@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from app.core.logging_config import get_logger
 from app.db import get_session
 from app.models import Employee, Department, MotivationProgram
+from iiko_api import iiko_api
 
 logger = get_logger(name=__name__)
 
@@ -145,8 +146,31 @@ def get_employees_by_motivation_program_id(session: Session, motivation_program_
 def get_department_by_code(session: Session, department_code: str) -> Type[Department]:
     """
     Возвращает отдел по его ID.
+
     :param session: Session SQLAlchemy.
     :param department_code: Код отдела.
     :return: Отдел.(Department)
     """
     return session.query(Department).filter_by(code=department_code).one_or_none()
+
+
+def get_employee_name_by_id(employee_id: str) -> str:
+    """
+    Возвращает имя сотрудника по его ID, из iiko,
+    позже реализую из внутренней БД.
+
+    :param session: Session SQLAlchemy.
+    :param employee_id: ID сотрудника.
+    :return: Полное имя сотрудника.
+    """
+    # TODO: Получать из внутренней БД
+    employee = iiko_api.employees.get_employee_by_id(employee_id)
+    if employee:
+        first_name = employee.get("firstName", f"Имя не задано в iiko (ID: {employee_id})")
+        last_name = employee.get("lastName", f"Фамилия не задано в iiko (ID: {employee_id})")
+        full_name = first_name + " " + last_name
+        return full_name
+    else:
+        # TODO: Добавить исключение
+        logger.error(f"Сотрудник с ID {employee_id} не найден")
+        return ""
