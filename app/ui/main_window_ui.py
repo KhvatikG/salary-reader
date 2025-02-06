@@ -336,7 +336,7 @@ class Ui_MainWindow(object):
         self.date_from.setStyleSheet(u"")
         self.date_from.setWrapping(False)
         self.date_from.setProperty(u"showGroupSeparator", False)
-        self.date_from.setDateTime(QDateTime(QDate(2024, 10, 29), QTime(0, 0, 0)))
+        self.date_from.setDateTime(QDateTime(QDate(2024, 10, 28), QTime(0, 0, 0)))
         self.date_from.setTime(QTime(0, 0, 0))
         self.date_from.setMinimumDate(QDate(2020, 1, 1))
         self.date_from.setCalendarPopup(True)
@@ -357,7 +357,7 @@ class Ui_MainWindow(object):
         self.date_to = QDateEdit(self.salary_panel)
         self.date_to.setObjectName(u"date_to")
         self.date_to.setStyleSheet(u"")
-        self.date_to.setDateTime(QDateTime(QDate(2024, 11, 12), QTime(0, 0, 0)))
+        self.date_to.setDateTime(QDateTime(QDate(2024, 11, 11), QTime(0, 0, 0)))
         self.date_to.setTime(QTime(0, 0, 0))
         self.date_to.setMinimumDateTime(QDateTime(QDate(2020, 1, 1), QTime(0, 0, 0)))
         self.date_to.setMinimumDate(QDate(2020, 1, 1))
@@ -371,10 +371,10 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.refresh_salary)
 
-        self.pushButton_3 = QPushButton(self.salary_panel)
-        self.pushButton_3.setObjectName(u"pushButton_3")
+        self.button_payslip_report = QPushButton(self.salary_panel)
+        self.button_payslip_report.setObjectName(u"button_payslip_report")
 
-        self.horizontalLayout_3.addWidget(self.pushButton_3)
+        self.horizontalLayout_3.addWidget(self.button_payslip_report)
 
         self.get_full_salary_blanc = QPushButton(self.salary_panel)
         self.get_full_salary_blanc.setObjectName(u"get_full_salary_blanc")
@@ -392,7 +392,7 @@ class Ui_MainWindow(object):
         self.label_2.raise_()
         self.date_to.raise_()
         self.refresh_salary.raise_()
-        self.pushButton_3.raise_()
+        self.button_payslip_report.raise_()
         self.get_full_salary_blanc.raise_()
         self.label.raise_()
 
@@ -454,7 +454,7 @@ class Ui_MainWindow(object):
         self.label.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0442:", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u0414\u043e:", None))
         self.refresh_salary.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c", None))
-        self.pushButton_3.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0447\u0430\u0442\u044c", None))
+        self.button_payslip_report.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0447\u0430\u0442\u044c \u0432\u0435\u0434\u043e\u043c\u043e\u0441\u0442\u0435\u0439", None))
         self.get_full_salary_blanc.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0432\u0435\u0440\u043a\u0430 \u0433\u0440\u0430\u0444\u0438\u043a\u0430", None))
     # retranslateUi
 

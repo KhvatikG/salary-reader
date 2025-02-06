@@ -484,7 +484,7 @@ border: none;</string>
               <second>0</second>
               <year>2024</year>
               <month>10</month>
-              <day>29</day>
+              <day>28</day>
              </datetime>
             </property>
             <property name="time">
@@ -535,7 +535,7 @@ border: none;</string>
               <second>0</second>
               <year>2024</year>
               <month>11</month>
-              <day>12</day>
+              <day>11</day>
              </datetime>
             </property>
             <property name="time">
@@ -582,9 +582,9 @@ border: none;</string>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton_3">
+           <widget class="QPushButton" name="button_payslip_report">
             <property name="text">
-             <string>Печать</string>
+             <string>Печать ведомостей</string>
             </property>
            </widget>
           </item>
@@ -600,7 +600,7 @@ border: none;</string>
          <zorder>label_2</zorder>
          <zorder>date_to</zorder>
          <zorder>refresh_salary</zorder>
-         <zorder>pushButton_3</zorder>
+         <zorder>button_payslip_report</zorder>
          <zorder>get_full_salary_blanc</zorder>
          <zorder>label</zorder>
         </widget>

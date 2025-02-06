@@ -4,17 +4,18 @@ import os
 import sys
 from typing import Type
 
-
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIntValidator, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
     QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton
+from loguru import logger
 from openpyxl.workbook import Workbook
 
 from app.drivers.attendances import AttendancesDataDriver
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
 from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear, \
     get_employees_by_motivation_program_id
+from app.payslip_report.payslip_report import ReportGenerator
 from app.screens.edit_employees_window import EditEmployeesWindow
 from app.ui.controllers.table_controller import ThresholdsTableController
 from app.ui.main_window_ui import Ui_MainWindow
@@ -44,6 +45,9 @@ class SalaryReader(QMainWindow):
         self.ui.setupUi(self)
         self.DEBUG = False
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
+        # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
+        self.payslip_generator = ReportGenerator(self.salary_table_controller)
+        self.payslip_report_callback = self.payslip_generator.payslip_callback
 
         self.threshold_table_controller = ThresholdsTableController(self.ui.table_motivate_settings)
 
@@ -105,7 +109,7 @@ class SalaryReader(QMainWindow):
         self.ui.salar_table.setColumnCount(9)
         self.ui.salar_table.setHorizontalHeaderLabels(
             ["ФИО", "Полное имя", "Сумма ЗП", "Кол-во полных смен",
-             "Кол-во неполных смен", "Роль", "Отдел",  "Табельный", "id"])
+             "Кол-во неполных смен", "Роль", "Отдел", "Табельный", "id"])
         self.ui.salar_table.setSortingEnabled(True)
 
         self.ui.refresh_salary.clicked.connect(self.update_and_render_salary_table)
@@ -114,6 +118,9 @@ class SalaryReader(QMainWindow):
         self.excel_button = QPushButton(icon=excel_icon, parent=self.ui.salar_table)
         self.excel_button.setGeometry(1, 1, 23, 23)
         self.excel_button.clicked.connect(self.export_to_excel)
+
+        # Печать ведомостей в pdf по 4 таблицы(сотрудника) на листе
+        self.ui.button_payslip_report.clicked.connect(self.payslip_report_callback)
 
     def update_and_render_salary_table(self):
         """
@@ -138,12 +145,13 @@ class SalaryReader(QMainWindow):
         self.ui.roles_list.clear()
         # Получаем код выбранного отдела
         department_code = get_department_code(self.ui.department)
-
         # Обновляем данные о работниках из iiko
         # TODO: Получать при запуске, после обновлять только по кнопке
         with get_session() as session:
             try:
+                logger.debug(f"Обновляем сотрудников для {department_code} (До if)")
                 if not self.DEBUG:
+                    logger.debug(f"Обновляем сотрудников для {department_code} (После if)")
                     update_employees_from_api(department_code=department_code, session=session)
                     session.commit()  # Сохраняем изменения, если всё успешно
                     print(f"[set_current_roles] Сотрудники для отдела {department_code} обновлены")
@@ -483,7 +491,6 @@ class SalaryReader(QMainWindow):
         motivation_program = self.ui.roles_list.currentItem()
         print(f"Мотивационная программа в функции открытия окна получена - {motivation_program}")
         if not motivation_program:
-
             msg_box = QMessageBox(
                 QMessageBox.Icon.Warning,
                 "Предупреждение",
@@ -537,11 +544,10 @@ class SalaryReader(QMainWindow):
         ws.column_dimensions['H'].width = 20
         ws.column_dimensions['I'].width = 20
 
-
         for row in range(self.ui.salar_table.rowCount()):
             for col in range(self.ui.salar_table.columnCount()):
                 item = self.ui.salar_table.item(row, col)
-                ws.cell(row=row + 2, column=col+ 1).value = item.text()
+                ws.cell(row=row + 2, column=col + 1).value = item.text()
 
         wb.save("salary_table.xlsx")
 
