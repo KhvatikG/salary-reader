@@ -42,6 +42,7 @@ class Department(Base):
         return f"<Department(id={self.id}, code='{self.code}', name='{self.name}')>"
 
 
+# TODO: Добавить поля хранящие firstName и lastName
 class Employee(Base):
     """Таблица, представляющая сотрудников.
 
@@ -86,23 +87,24 @@ class MotivationProgram(Base):
 
     # Один-ко-многим связь с сотрудниками
     employees = relationship(
-                            "Employee",
-                            back_populates="motivation_program"
+        "Employee",
+        back_populates="motivation_program"
     )
 
     # Один-ко-многим связь с порогами мотивации
     thresholds = relationship(
-                            "MotivationThreshold",
-                            back_populates="motivation_program",
-                            cascade="all, delete-orphan"
+        "MotivationThreshold",
+        back_populates="motivation_program",
+        cascade="all, delete-orphan"
     )
 
     # Один-ко-многим связь с отделами
     department = relationship(
-                            "Department",
-                            back_populates="motivation_programs"
+        "Department",
+        back_populates="motivation_programs"
     )
     __table_args__ = (UniqueConstraint('name', 'department_code', name='_name_department_uc'),)
+
 
 class MotivationThreshold(Base):
     """Таблица, представляющая уровни порогов мотивации.
