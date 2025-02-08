@@ -44,11 +44,20 @@ class ReportGenerator:
             spaceAfter=2*mm
         )
 
+        footer_style = ParagraphStyle(
+            'Footer',
+            fontName=self.font_name,
+            fontSize=8,
+            alignment=2,
+            leading=9,
+        )
+
         table_data = [
             [Paragraph(f"<b>{name}</b> - {month:02d}/{year}", header_style)],
-            ["Дата", "Тип смены", "Период", "Зарплата"]
+            ["Дата", "Тип смены", "Период", "ЗП"]
         ]
 
+        salary_sum = 0  # Переменная для накопления итога по зп
         for day in range(1, num_days + 1):
             current_date = date(year, month, day)
             row = next((r for r in month_rows if r['date'] == current_date), None)
@@ -59,6 +68,10 @@ class ReportGenerator:
                 row['period'] if row else "",
                 str(row['salary']) if row else ""
             ])
+            salary_sum += int(row['salary']) if row else 0
+        table_data.append([
+            Paragraph(f"Итого: {salary_sum}", footer_style),
+        ])
         return table_data
 
     def generate_payslip_report(self, employee_ids):
@@ -74,43 +87,46 @@ class ReportGenerator:
         c = canvas.Canvas(pdf_filename, pagesize=A4)
         c.setFont(self.font_name, 7)  # Устанавливаем шрифт для всего документа
 
-        # Размеры таблицы (при необходимости подберите оптимальные значения)
-        table_width = 90 * mm
+        # Размеры таблицы
+        table_width = 70 * mm
         table_height = 130 * mm
 
-        # Четыре позиции на странице для таблиц
+        # Позиции на странице для таблиц
         positions = [
-            (10 * mm, A4[1] - 5 * mm - table_height),  # Верх-лево
-            (105 * mm, A4[1] - 5 * mm - table_height),  # Верх-право
-            (10 * mm, A4[1] - 145 * mm - table_height),  # Низ-лево
-            (105 * mm, A4[1] - 145 * mm - table_height)  # Низ-право
+            (1 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
+            (71 * mm, A4[1] - 10 * mm - table_height),  # Верх-центр
+            (141 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
+            (1 * mm, A4[1] - 150 * mm - table_height),  # Низ-лево
+            (71 * mm, A4[1] - 150 * mm - table_height),  # Низ-центр
+            (141 * mm, A4[1] - 150 * mm - table_height)  # Низ-право
         ]
 
         first_page = True
-        for i in range(0, len(all_tables), 4):
+        for i in range(0, len(all_tables), 6):
             if not first_page:
                 c.showPage()
             else:
                 first_page = False
 
-            page_tables = all_tables[i:i + 4]
+            page_tables = all_tables[i:i + 6]
 
             for idx, table_data in enumerate(page_tables):
                 t = Table(
                     table_data,
-                    colWidths=[20 * mm, 25 * mm, 25 * mm, 20 * mm],
+                    colWidths=[14 * mm, 25 * mm, 15 * mm, 9 * mm],
                     # Первая строка – высота 8 мм, остальные – по 5 мм
                     rowHeights=[8 * mm] + [4 * mm] * (len(table_data) - 1)
                 )
                 style = TableStyle([
                     ('SPAN', (0, 0), (-1, 0)),
+                    ('SPAN', (0, -1), (-1, -1)),
                     ('BACKGROUND', (0, 0), (-1, 0), colors.transparent),
                     ('FONTNAME', (0, 0), (-1, -1), self.font_name),
                     ('FONTSIZE', (0, 0), (-1, 0), 8),
                     ('FONTSIZE', (0, 1), (-1, -1), 6),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
+                    ('GRID', (0, 1), (-1, -2), 0.5, colors.black),
                     ('BACKGROUND', (0, 1), (-1, 1), colors.lightgrey),
                     ('LEADING', (0, 0), (-1, -1), 7),
                     ('TOPPADDING', (0, 0), (-1, -1), 0.5*mm),
@@ -131,13 +147,19 @@ class ReportGenerator:
 
         return pdf_filename
 
-    def payslip_callback(self) -> None:
+    def create_payslip_pdf(self) -> None:
         """
         Передает список id сотрудников из parent (AttendancesDataDriver) в generate_payslip_report.
 
         В AttendancesDataDriver.employees_attendances.attendances содержатся "отчищенные" явки сотрудников,
         в виде списка словарей, где ключи это id сотрудника.
         """
-
-        employee_ids = [emp_id for emp_id in self.parent.employees_attendances.attendances]
-        self.generate_payslip_report(employee_ids)
+        try:
+            employee_ids = [emp_id for emp_id in self.parent.employees_attendances.attendances]
+            self.generate_payslip_report(employee_ids)
+        except PermissionError as e:
+            logger.exception(e)
+            raise
+        except Exception as e:
+            logger.exception(e)
+            raise

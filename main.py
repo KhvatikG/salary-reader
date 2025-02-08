@@ -47,7 +47,6 @@ class SalaryReader(QMainWindow):
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
         # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
         self.payslip_generator = ReportGenerator(self.salary_table_controller)
-        self.payslip_report_callback = self.payslip_generator.payslip_callback
 
         self.threshold_table_controller = ThresholdsTableController(self.ui.table_motivate_settings)
 
@@ -121,6 +120,13 @@ class SalaryReader(QMainWindow):
 
         # Печать ведомостей в pdf по 4 таблицы(сотрудника) на листе
         self.ui.button_payslip_report.clicked.connect(self.payslip_report_callback)
+
+    def show_error_message(self, message):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setText(message)
+        msg.setWindowTitle("Ошибка")
+        msg.exec()
 
     def update_and_render_salary_table(self):
         """
@@ -552,6 +558,18 @@ class SalaryReader(QMainWindow):
         wb.save("salary_table.xlsx")
 
         os.startfile("salary_table.xlsx")
+
+    def payslip_report_callback(self):
+        """
+        Функция, которая вызывается при нажатии на кнопку "Отчет по зарплате"
+        """
+        try:
+            self.payslip_generator.create_payslip_pdf()
+        except PermissionError as e:
+            self.show_error_message("Отчет открыт в другой программе. Закройте другие программы использующие отчет"
+                                    " и повторите попытку.")
+        except Exception as e:
+            self.show_error_message(f"Ошибка при создании отчета: Непредвиденная ошибка: {e}")
 
 
 if __name__ == '__main__':
