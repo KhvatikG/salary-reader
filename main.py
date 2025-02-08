@@ -121,9 +121,20 @@ class SalaryReader(QMainWindow):
         # Печать ведомостей в pdf по 4 таблицы(сотрудника) на листе
         self.ui.button_payslip_report.clicked.connect(self.payslip_report_callback)
 
-    def show_error_message(self, message):
-        msg = QMessageBox()
+    # TODO: Применить ко всем ошибкам, которые возникают при работе программы
+    def show_error_message(self, message, title=None) -> None:
+        """
+        Функция для вывода сообщения об ошибке в новом окне
+        :param message: Сообщение об ошибке
+        """
+        if title is None:
+            title = "Ошибка"
+
+        msg = QMessageBox(self)
+        msg.setStyleSheet(WARNING_DIALOG_STYLE)
         msg.setIcon(QMessageBox.Icon.Critical)
+        msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+        msg.setWindowTitle(title)
         msg.setText(message)
         msg.setWindowTitle("Ошибка")
         msg.exec()
