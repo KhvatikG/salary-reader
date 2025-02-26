@@ -6,7 +6,7 @@
 
 ## Описание
 
-Библиотека предоставляет базовый класс `BaseClient` для работы с API iiko. Этот класс предоставляет методы для выполнения GET и POST запросов к API, а также методы для авторизации и отмены авторизации.
+Библиотека предоставляет базовый класс `IikoApi` для работы с API iiko. Этот класс предоставляет методы для выполнения GET и POST запросов к API, а также методы для авторизации и отмены авторизации.
 
 Библиотека также предоставляет классы `EmployeesEndpoints` и `RolesEndpoints`, которые предоставляют методы для работы с сотрудниками и ролями сотрудников соответственно.
 
@@ -21,19 +21,19 @@ pip install iiko-api
 ## Использование
 
 ```python
-from iiko_api import BaseClient, client
+from iiko_api import iiko_api
 
 # Аутентификация(Токен хранится в сессии в экземпляре client, и автоматом прикладывается к запросам)
-client.login()
+iiko_api.login()
 
 # Получение списка всех сотрудников
-employees = client.employees.get_employees()
+employees = iiko_api.employees.get_employees()
 
 # Получение списка всех ролей
-roles = client.roles.get_roles()
+roles = iiko_api.roles.get_roles()
 
 # Отпускание токена
-client.logout()
+iiko_api.logout()
 ```
 
 ## Примечания
