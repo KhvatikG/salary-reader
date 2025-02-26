@@ -47,7 +47,7 @@ UiControllers используют Datadrivers и отвечают за упра
 
 ```python
 from dataclasses import dataclass
-from typing import Dict, List, Union, Optional
+from typing import List
 
 @dataclass
 class BaseClient:
