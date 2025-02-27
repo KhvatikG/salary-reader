@@ -574,8 +574,11 @@ class SalaryReader(QMainWindow):
         """
         Функция, которая вызывается при нажатии на кнопку "Отчет по зарплате"
         """
+        logger.info("=========================Отчет по зарплате=========================")
         try:
-            self.payslip_generator.create_payslip_pdf()
+            self.payslip_generator.create_payslip_pdf(
+                self.ui.date_from.date().toPython(), self.ui.date_to.date().toPython()
+            )
         except PermissionError as e:
             self.show_error_message("Отчет открыт в другой программе. Закройте другие программы использующие отчет"
                                     " и повторите попытку.")

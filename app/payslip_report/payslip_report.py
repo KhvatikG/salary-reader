@@ -1,5 +1,5 @@
 import calendar
-from datetime import date
+from datetime import date, datetime, timedelta
 from collections import defaultdict
 
 from loguru import logger
@@ -31,15 +31,43 @@ class ReportGenerator:
             grouped[(d.year, d.month)].append(row)
         return grouped
 
-    def _create_month_table(self, name, year, month, month_rows):
+    def _create_month_table(self, name, year, month, month_rows, date_from=None, date_to=None):
+        # Определяем базовые параметры
+        month_start = date(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
+        month_end = date(year, month, num_days)
+
+        # Валидация периода
+        period = None
+        if date_from and date_to:
+            # Нормализуем порядок дат
+            date_from, date_to = sorted([date_from, date_to])
+
+            # Проверяем принадлежность к текущему месяцу
+            if (date_from >= month_start and date_to <= month_end
+                    and date_from.month == date_to.month):
+                period = (date_from.day, date_to.day)
+
+        # Определяем диапазон дней
+        if period:
+            start_day = max(1, period[0])
+            end_day = min(num_days, period[1])
+            days_range = range(start_day, end_day + 1)
+            period_str = f"{date_from.strftime('%d.%m')}-{date_to.strftime('%d.%m.%Y')}"
+        else:
+            days_range = range(1, num_days + 1)
+            period_str = f"{month:02d}/{year}"
+
+        # Оптимизация: создаём словарь для быстрого доступа
+        date_to_row = {r['date']: r for r in month_rows}
+
+        # Подготовка стилей
         header_style = ParagraphStyle(
             'Header',
             fontName=self.font_name,
             fontSize=8,
             alignment=1,
             leading=9,
-            #spaceAfter=6,
             spaceBefore=1*mm,
             spaceAfter=2*mm
         )
@@ -52,36 +80,64 @@ class ReportGenerator:
             leading=9,
         )
 
+        # Формируем заголовок
         table_data = [
-            [Paragraph(f"<b>{name}</b> - {month:02d}/{year}", header_style)],
+            [Paragraph(f"<b>{name}</b> - {period_str}", header_style)],
             ["Дата", "Тип смены", "Период", "ЗП"]
         ]
 
-        salary_sum = 0  # Переменная для накопления итога по зп
-        for day in range(1, num_days + 1):
+        salary_sum = 0
+
+        # Основной цикл обработки дней
+        for day in days_range:
             current_date = date(year, month, day)
-            row = next((r for r in month_rows if r['date'] == current_date), None)
-            logger.warning(f"Тип смены {row['shift_type'] if row else 'Нет типа'}")
+            row = date_to_row.get(current_date)
+
+            # Логирование с проверкой существования ключа
+            shift_type = row.get('shift_type', 'Нет смены') if row else 'Нет смены'
+            logger.info(f"Тип смены {shift_type} {day}-го")
+
+            # Формируем строку таблицы
             table_data.append([
                 current_date.strftime("%d.%m.%Y"),
-                row['shift_type'] if row else "",
-                row['period'] if row else "",
-                str(row['salary']) if row else ""
+                row.get('shift_type', '') if row else "",
+                row.get('period', '') if row else "",
+                str(row['salary']) if row and 'salary' in row else ""
             ])
-            salary_sum += int(row['salary']) if row else 0
+
+            # Суммируем зарплату с проверкой
+            try:
+                salary_sum += int(row['salary']) if row else 0
+            except (KeyError, ValueError, TypeError):
+                logger.error(f"Ошибка в данных зарплаты для {current_date}")
+
+        # Добавляем итоговую строку
         table_data.append([
             Paragraph(f"Итого: {salary_sum}", footer_style),
         ])
+
         return table_data
 
-    def generate_payslip_report(self, employee_ids):
+    def generate_payslip_report(self, employee_ids: list, date_from: datetime, date_to: datetime):
+        """
+        Генерация отчета по зарплате
+
+        :param employee_ids: ID сотрудников
+        :param date_from: Дата начала периода
+        :param date_to: Дата конца периода
+        :return:
+        """
         all_tables = []
         for emp_id in employee_ids:
             name = get_employee_name_by_id(emp_id)
             logger.warning(f"Имя {name}")
             rows = self.parent.get_detailed_table_rows(emp_id)
             for (year, month), month_rows in self._group_by_month(rows).items():
-                all_tables.append(self._create_month_table(name, year, month, month_rows))
+                all_tables.append(
+                    self._create_month_table(
+                    name, year, month, month_rows, date_from, date_to
+                    )
+                )
 
         pdf_filename = "payslip_report.pdf"
         c = canvas.Canvas(pdf_filename, pagesize=A4)
@@ -147,7 +203,7 @@ class ReportGenerator:
 
         return pdf_filename
 
-    def create_payslip_pdf(self) -> None:
+    def create_payslip_pdf(self, from_date: datetime, to_date: datetime) -> None:
         """
         Передает список id сотрудников из parent (AttendancesDataDriver) в generate_payslip_report.
 
@@ -155,8 +211,9 @@ class ReportGenerator:
         в виде списка словарей, где ключи это id сотрудника.
         """
         try:
+            logger.info(f"Строим отчет по зарплате за период {from_date} - {to_date}")
             employee_ids = [emp_id for emp_id in self.parent.employees_attendances.attendances]
-            self.generate_payslip_report(employee_ids)
+            self.generate_payslip_report(employee_ids, from_date, to_date)
         except PermissionError as e:
             logger.exception(e)
             raise
