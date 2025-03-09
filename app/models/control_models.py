@@ -166,8 +166,10 @@ def get_employee_name_by_id(employee_id: str) -> str:
     # TODO: Получать из внутренней БД
     employee = iiko_api.employees.get_employee_by_id(employee_id)
     if employee:
-        first_name = employee.get("firstName", f"Имя не задано в iiko (ID: {employee_id})")
-        last_name = employee.get("lastName", f"Фамилия не задано в iiko (ID: {employee_id})")
+        system_name = employee.get("name", "Не задано")
+        tabel = employee.get("code", "Не задан")
+        first_name = employee.get("firstName", f"Имя не задано в iiko (Системное имя: {system_name})")
+        last_name = employee.get("lastName", f"Фамилия не задано в iiko (Табель: {tabel})")
         full_name = first_name + " " + last_name
         return full_name
     else:
