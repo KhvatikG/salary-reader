@@ -125,6 +125,7 @@ class SalaryReader(QMainWindow):
     def show_error_message(self, message, title=None) -> None:
         """
         Функция для вывода сообщения об ошибке в новом окне
+        :param title: Заголовок сообщения
         :param message: Сообщение об ошибке
         """
         if title is None:
@@ -136,7 +137,7 @@ class SalaryReader(QMainWindow):
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg.setWindowTitle(title)
         msg.setText(message)
-        msg.setWindowTitle("Ошибка")
+        msg.setWindowTitle(title)
         msg.exec()
 
     def update_and_render_salary_table(self):
@@ -149,7 +150,11 @@ class SalaryReader(QMainWindow):
 
         self.salary_table_controller.update_data(
             department_code=current_department_code, date_from=date_from, date_to=date_to)
-        self.salary_table_controller.render_general_table()
+        try:
+            self.salary_table_controller.render_general_table()
+        except Exception as e:
+            logger.error(f"Ошибка при обновлении данных таблицы зарплат: {e}")
+            self.show_error_message(title="Ошибка при обновлении данных таблицы зарплат", message=str(e))
 
     def set_current_roles(self):
         """
