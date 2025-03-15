@@ -322,6 +322,8 @@ class AttendancesDataDriver:
                     continue
 
             employee_attendances_data = self.employees_attendances.get_general_row_data(employee_id)
+            logger.debug(f"Данные по явкам сотрудника {employee_.get('name', 'Не удалось получить имя')}"
+                         f" (ID={employee_id}): {employee_attendances_data}")
 
             total_salary = 0
 
@@ -360,7 +362,12 @@ class AttendancesDataDriver:
         """
         Выводит данные сводного отчета по зарплате в таблицу.
         """
-        rows = self.get_general_table_rows()
+        try:
+            rows = self.get_general_table_rows()
+        except Exception as err:
+            logger.error(f"Произошла ошибка при получении данных для сводной таблицы:\n{err}")
+            raise err
+
         self.general_table.setRowCount(0)
         self.general_table.setRowCount(len(rows))
         self.general_table.setColumnCount(9)
