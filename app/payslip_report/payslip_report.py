@@ -87,6 +87,8 @@ class ReportGenerator:
         ]
 
         salary_sum = 0
+        full_days = 0
+        partial_days = 0
 
         # Основной цикл обработки дней
         for day in days_range:
@@ -96,6 +98,14 @@ class ReportGenerator:
             # Логирование с проверкой существования ключа
             shift_type = row.get('shift_type', 'Нет смены') if row else 'Нет смены'
             logger.info(f"Тип смены {shift_type} {day}-го")
+            # Считаем количество полных и неполных смен для футера
+            match shift_type.lower():
+                case "полная":
+                    full_days += 1
+                case "пол смены":
+                    partial_days += 1
+                case _:
+                    pass
 
             # Формируем строку таблицы
             table_data.append([
@@ -113,7 +123,10 @@ class ReportGenerator:
 
         # Добавляем итоговую строку
         table_data.append([
-            Paragraph(f"Итого: {salary_sum}", footer_style),
+            'Итого:', 'Полных смен', 'Неполных', 'Сумма'
+        ])
+        table_data.append([
+            '-', str(full_days), str(partial_days), str(salary_sum)
         ])
 
         return table_data
@@ -138,7 +151,7 @@ class ReportGenerator:
                     name, year, month, month_rows, date_from, date_to
                     )
                 )
-
+        logger.debug(f"Начинаем формировать PDF...")
         pdf_filename = "payslip_report.pdf"
         c = canvas.Canvas(pdf_filename, pagesize=A4)
         c.setFont(self.font_name, 7)  # Устанавливаем шрифт для всего документа
@@ -166,7 +179,9 @@ class ReportGenerator:
 
             page_tables = all_tables[i:i + 6]
 
+            logger.debug(f"Формируем страницу {i//6+1} из {len(all_tables)//6}")
             for idx, table_data in enumerate(page_tables):
+                logger.debug(f"Формируем таблицу {idx+1} из {len(page_tables)}")
                 t = Table(
                     table_data,
                     colWidths=[14 * mm, 25 * mm, 15 * mm, 9 * mm],
@@ -175,15 +190,16 @@ class ReportGenerator:
                 )
                 style = TableStyle([
                     ('SPAN', (0, 0), (-1, 0)),
-                    ('SPAN', (0, -1), (-1, -1)),
+                    #('SPAN', (0, -1), (-1, -1)),
                     ('BACKGROUND', (0, 0), (-1, 0), colors.transparent),
                     ('FONTNAME', (0, 0), (-1, -1), self.font_name),
                     ('FONTSIZE', (0, 0), (-1, 0), 8),
                     ('FONTSIZE', (0, 1), (-1, -1), 6),
                     ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                     ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                    ('GRID', (0, 1), (-1, -2), 0.5, colors.black),
+                    ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
                     ('BACKGROUND', (0, 1), (-1, 1), colors.lightgrey),
+                    ('BACKGROUND', (0, -2), (-1, -2), colors.lightgrey),
                     ('LEADING', (0, 0), (-1, -1), 7),
                     ('TOPPADDING', (0, 0), (-1, -1), 0.5*mm),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 0.5*mm),
