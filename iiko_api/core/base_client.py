@@ -9,6 +9,8 @@
 """
 import contextlib
 from typing import Callable, Any
+from functools import wraps
+from inspect import stack, getframeinfo
 
 import requests
 from requests import Response
@@ -45,15 +47,19 @@ class BaseClient:
         :param func: Функция для обработки ошибок
         :return:
         """
+        caller = getframeinfo(stack()[1][0])
 
+        @wraps(func)
         def wrapper(*args, **kwargs):
             try:
                 response: Response = func(*args, **kwargs)
                 response.raise_for_status()
-                logger.debug(f":\n  Request URL: {response.request.url}\n"
-                            f"  Request Method: {response.request.method}\n"
-                            f"  Request Body: {response.request.body}\n"
-                            f"  Response Body: {response.text}\n"
+                logger.debug(f"  Имя функции: {func.__name__}:\n"
+                             f"  Вызов из: {caller.filename}:{caller.lineno}\n"
+                             f"\n  Request URL: {response.request.url}\n"
+                             f"  Request Method: {response.request.method}\n"
+                             f"  Request Body: {response.request.body}\n"
+                             f"  Response Body: {response.text}\n"
                              )
                 return response
             except HTTPError as http_error:
