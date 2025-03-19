@@ -174,7 +174,7 @@ class SalaryReader(QMainWindow):
                 logger.debug(f"Обновляем сотрудников для {department_code} (До if)")
                 if not self.DEBUG:
                     logger.debug(f"Обновляем сотрудников для {department_code} (После if)")
-                    update_employees_from_api(department_code=department_code, session=session)
+                    update_employees_from_api(session=session)
                     session.commit()  # Сохраняем изменения, если всё успешно
                     print(f"[set_current_roles] Сотрудники для отдела {department_code} обновлены")
             except Exception as e:

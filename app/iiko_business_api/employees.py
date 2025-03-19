@@ -9,16 +9,12 @@ from iiko_api.core.config.logging_config import get_logger
 logger = get_logger(__name__, level="DEBUG")
 
 
-def update_employees_from_api(department_code: str, session: Session):
+def update_employees_from_api(session: Session):
     try:
-        logger.info(f"Обновление сотрудников из отдела {department_code}")
-        department = session.query(Department).filter(Department.code == department_code).first()
-        if not department:
-            raise Exception(f"Отдел с кодом {department_code} не найден")
+        logger.info(f"Обновление сотрудников...")
 
         existing_employees: list[Type[Employee]] = (
             session.query(Employee)
-            .filter(Employee.departments.any(code=department_code))
             .all()
         )
 
@@ -31,9 +27,9 @@ def update_employees_from_api(department_code: str, session: Session):
             roles_name_dict = {role["id"]: role["name"] for role in roles}
             logger.debug(f"Роили iiko получены {roles_name_dict}")
 
-            logger.debug(f"Получение сотрудников отдела {department_code} из iiko")
-            api_employees: list[dict] = iiko_api.employees.get_employees_by_department(department_code)
-            logger.debug(f"Сотрудники отдела {department_code} получены из iiko:\n  {api_employees}\n")
+        logger.debug(f"Получение сотрудников из iiko...")
+        api_employees: list[dict] = iiko_api.employees.get_employees()
+        logger.debug(f"Сотрудники получены из iiko:\n  {api_employees}\n")
 
         for employee_data in api_employees:
             if not employee_data.get("departmentCodes"):
@@ -89,8 +85,8 @@ def update_employees_from_api(department_code: str, session: Session):
             session.delete(employee)
             logger.debug(f"Удаление сотрудника {employee} завершено")
 
-        logger.info(f" Обновление сотрудников отдела {department_code} завершено")
+        logger.info(f" Обновление сотрудников завершено")
     except Exception as e:
-        logger.error(f"Ошибка обновления сотрудников отдела {department_code}: {e}\n"
+        logger.error(f"Ошибка обновления сотрудников: {e}\n"
                      f"{e.with_traceback(e.__traceback__)}")
         raise e
