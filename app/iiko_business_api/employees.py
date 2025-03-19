@@ -1,3 +1,5 @@
+from typing import Type
+
 from sqlalchemy.orm import Session
 
 from app.models.models import Employee, Department
@@ -6,6 +8,7 @@ from iiko_api.core.config.logging_config import get_logger
 
 logger = get_logger(__name__, level="DEBUG")
 
+
 def update_employees_from_api(department_code: str, session: Session):
     try:
         logger.info(f"Обновление сотрудников из отдела {department_code}")
@@ -13,7 +16,7 @@ def update_employees_from_api(department_code: str, session: Session):
         if not department:
             raise Exception(f"Отдел с кодом {department_code} не найден")
 
-        existing_employees: list[Employee] = (
+        existing_employees: list[Type[Employee]] = (
             session.query(Employee)
             .filter(Employee.departments.any(code=department_code))
             .all()
@@ -37,26 +40,28 @@ def update_employees_from_api(department_code: str, session: Session):
                 logger.debug(f"Сотрудник {employee_data} не имеет отдела(скорее всего служебный аккаунт) -> пропускаем")
                 continue
             if not employee_data.get("code"):
-                logger.debug(f"Сотрудник {employee_data} не имеет табельного(скорее всего служебный аккаунт) -> пропускаем")
+                logger.debug(
+                    f"Сотрудник {employee_data} не имеет табельного(скорее всего служебный аккаунт) -> пропускаем")
                 continue
             logger.debug(f"Обработка сотрудника {employee_data}")
             employee_id: str = employee_data.get("id")
 
             if employee_id in existing_employees_dict:
                 logger.debug(f"Сотрудник обнаружен -> обновление существующего сотрудника {employee_data}...")
-                existing_employee: Employee = existing_employees_dict.pop(employee_id)
+                existing_employee: Type[Employee] = existing_employees_dict.pop(employee_id)
                 existing_employee.name = employee_data.get("name")
                 existing_employee.position = roles_name_dict.get(employee_data.get("mainRoleId"))
                 existing_employee.code = employee_data.get("code")
 
                 department_codes = employee_data.get("departmentCodes")
-                new_departments: list[Department] = []
+                new_departments: list[Type[Department]] = []
 
                 for department_code in department_codes:
                     department = session.query(Department).filter_by(code=department_code).first()
                     if department:
                         new_departments.append(department)
-                logger.debug(f"Обновление отделов сотрудника {employee_data}\n {existing_employee.departments}\n->\n {new_departments}\n")
+                logger.debug(
+                    f"Обновление отделов сотрудника {employee_data}\n {existing_employee.departments}\n->\n {new_departments}\n")
                 existing_employee.departments = new_departments
 
                 logger.debug(f"Обновление существующего сотрудника {existing_employee} завершено")
