@@ -44,7 +44,7 @@ class SalaryReader(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.DEBUG = True
+        self.DEBUG = False
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
         # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
         self.payslip_generator = ReportGenerator(self.salary_table_controller)
