@@ -108,8 +108,14 @@ class AttendancesList:
         employee_attendances_data = {
             "warnings": False,
             "full_shifts_count": 0,
+            "full_shifts_count_from_1": 0,
+            "full_shifts_count_from_16": 0,
             "half_shifts_count": 0,
+            "half_shifts_count_from_1": 0,
+            "half_shifts_count_from_16": 0,
             "total_shifts_count": 0,
+            "total_shifts_count_from_1": 0,
+            "total_shifts_count_from_16": 0,
             "total_duration_seconds": 0,
             "shifts": {},
         }
@@ -126,10 +132,18 @@ class AttendancesList:
             # TODO: Вынести в настройки пороги длительности явки
             hours_duration = duration_.total_seconds() / 3600
             if hours_duration >= FULL_SHIFT_HOURS:
+                if 1 <= date_.day <= 15:
+                    employee_attendances_data["full_shifts_count_from_1"] += 1
+                elif 16 <= date_.day <= 31:
+                    employee_attendances_data["full_shifts_count_from_16"] += 1
                 employee_attendances_data["full_shifts_count"] += 1
                 employee_attendances_data["total_duration_seconds"] += duration_.total_seconds()
                 employee_attendances_data["shifts"].update({date_: ShiftType("full")})
             elif hours_duration >= HALF_SHIFT_HOURS:
+                if 1 <= date_.day <= 15:
+                    employee_attendances_data["half_shifts_count_from_1"] += 1
+                elif 16 <= date_.day <= 31:
+                    employee_attendances_data["half_shifts_count_from_16"] += 1
                 employee_attendances_data["half_shifts_count"] += 1
                 employee_attendances_data["total_duration_seconds"] += duration_.total_seconds()
                 employee_attendances_data["shifts"].update({date_: ShiftType("half")})
@@ -326,6 +340,8 @@ class AttendancesDataDriver:
                          f" (ID={employee_id}): {employee_attendances_data}")
 
             total_salary = 0
+            from_1_total_salary = 0
+            from_16_total_salary = 0
 
             # TODO: Возможно стоит перенести
             self.employees_shifts[employee_.get("id")] = employee_attendances_data['shifts'].copy()
@@ -342,6 +358,10 @@ class AttendancesDataDriver:
                     # TODO: Создать кастомное исключение для этого и обработать это исключение в ui - выбросить окно
                     raise ValueError(f"Дата {date_} не найдена в отчете о продажах")
                 total_salary += salary_
+                if 1 <= date_.day <= 15:
+                    from_1_total_salary += salary_
+                elif 16 <= date_.day <= 31:
+                    from_16_total_salary += salary_
 
             first_name = employee_.get('firstName', " ")
             last_name = employee_.get('lastName', " ")
@@ -354,6 +374,8 @@ class AttendancesDataDriver:
                 "departments": " ".join(departments),
                 "id": employee_id,
                 "salary": total_salary,
+                "from_1_salary": from_1_total_salary,
+                "from_16_salary": from_16_total_salary,
             })
             rows.append(employee_attendances_data)
         return rows
@@ -370,19 +392,25 @@ class AttendancesDataDriver:
 
         self.general_table.setRowCount(0)
         self.general_table.setRowCount(len(rows))
-        self.general_table.setColumnCount(9)
+        self.general_table.setColumnCount(15)
 
         for row_index, row_data in enumerate(rows):
 
             self.general_table.setItem(row_index, 0, QTableWidgetItem(str(row_data['name'])))
             self.general_table.setItem(row_index, 1, QTableWidgetItem(str(row_data['full_name'])))
-            self.general_table.setItem(row_index, 2, QTableWidgetItem(str(row_data['salary'])))
-            self.general_table.setItem(row_index, 3, QTableWidgetItem(str(row_data['full_shifts_count'])))
-            self.general_table.setItem(row_index, 4, QTableWidgetItem(str(row_data['half_shifts_count'])))
-            self.general_table.setItem(row_index, 5, QTableWidgetItem(str(row_data['role'])))
-            self.general_table.setItem(row_index, 6, QTableWidgetItem(str(row_data['departments'])))
-            self.general_table.setItem(row_index, 7, QTableWidgetItem(str(row_data['code'])))
-            self.general_table.setItem(row_index, 8, QTableWidgetItem(str(row_data['id'])))
+            self.general_table.setItem(row_index, 2, QTableWidgetItem(str(row_data['from_1_salary'])))
+            self.general_table.setItem(row_index, 3, QTableWidgetItem(str(row_data['full_shifts_count_from_1'])))
+            self.general_table.setItem(row_index, 4, QTableWidgetItem(str(row_data['half_shifts_count_from_1'])))
+            self.general_table.setItem(row_index, 5, QTableWidgetItem(str(row_data['from_16_salary'])))
+            self.general_table.setItem(row_index, 6, QTableWidgetItem(str(row_data['full_shifts_count_from_16'])))
+            self.general_table.setItem(row_index, 7, QTableWidgetItem(str(row_data['half_shifts_count_from_16'])))
+            self.general_table.setItem(row_index, 8, QTableWidgetItem(str(row_data['salary'])))
+            self.general_table.setItem(row_index, 9, QTableWidgetItem(str(row_data['full_shifts_count'])))
+            self.general_table.setItem(row_index, 10, QTableWidgetItem(str(row_data['half_shifts_count'])))
+            self.general_table.setItem(row_index, 11, QTableWidgetItem(str(row_data['role'])))
+            self.general_table.setItem(row_index, 12, QTableWidgetItem(str(row_data['departments'])))
+            self.general_table.setItem(row_index, 13, QTableWidgetItem(str(row_data['code'])))
+            self.general_table.setItem(row_index, 14, QTableWidgetItem(str(row_data['id'])))
 
             if row_data['warnings']:  # Если есть предупреждение
                 for col_index in range(self.general_table.columnCount()):
@@ -401,7 +429,7 @@ class AttendancesDataDriver:
         """
         Вызывается при двойном клике на строке таблицы с общей информацией о зарплате.
         """
-        employee_id = self.general_table.item(item.row(), 8).text()
+        employee_id = self.general_table.item(item.row(), 14).text()
         employee_name = self.general_table.item(item.row(), 0).text()
         self.render_detailed_table(
             parent=self.general_table,

@@ -9,6 +9,7 @@ from PySide6.QtGui import QIntValidator, QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
     QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton
 from loguru import logger
+from openpyxl.styles import Alignment, PatternFill, Border, Side, Font
 from openpyxl.workbook import Workbook
 
 from app.drivers.attendances import AttendancesDataDriver
@@ -43,7 +44,7 @@ class SalaryReader(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        self.DEBUG = False
+        self.DEBUG = True
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
         # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
         self.payslip_generator = ReportGenerator(self.salary_table_controller)
@@ -105,10 +106,21 @@ class SalaryReader(QMainWindow):
         # Сводная таблица зарплат
         self.ui.date_from.setDate(QDate.currentDate())
         self.ui.date_to.setDate(QDate.currentDate())
-        self.ui.salar_table.setColumnCount(9)
+        self.ui.salar_table.setColumnCount(15)
         self.ui.salar_table.setHorizontalHeaderLabels(
-            ["ФИО", "Полное имя", "Сумма ЗП", "Кол-во полных смен",
-             "Кол-во неполных смен", "Роль", "Отдел", "Табельный", "id"])
+            ["ФИО",
+             "Полное имя",
+             "Сумма ЗП\nc 1 по 15",
+             "Кол-во полных смен\nс 1 по 15",
+             "Кол-во неполных смен\nс 1 по 15",
+             "Сумма ЗП\n c 16 до конца месяца",
+             "Кол-во полных смен\n c 16 до конца месяца",
+             "Кол-во неполных смен\n c 16 до конца месяца",
+             "Сумма ЗП\n за весь месяц",
+             "Кол-во полных смен\n за весь месяц",
+             "Кол-во неполных смен\n за весь месяц",
+             "Роль", "Отдел", "Табельный", "id"]
+        )
         self.ui.salar_table.setSortingEnabled(True)
 
         self.ui.refresh_salary.clicked.connect(self.update_and_render_salary_table)
@@ -548,16 +560,48 @@ class SalaryReader(QMainWindow):
         ws.Name = "Сводная таблица зарплат"
         ws.cell(1, 1).value = "ФИО"
         ws.cell(1, 2).value = "Полное имя"
-        ws.cell(1, 3).value = "Сумма зарплаты"
-        ws.cell(1, 4).value = "Кол-во полных смен"
-        ws.cell(1, 5).value = "Кол-во неполных смен"
-        ws.cell(1, 6).value = "Должность"
-        ws.cell(1, 7).value = "Отдел"
-        ws.cell(1, 8).value = "Табельный номер"
-        ws.cell(1, 9).value = "id"
+        ws.cell(1, 3).value = "Сумма зарплаты\nc 1 по 15"
+        ws.cell(1, 4).value = "Кол-во полных смен\nс 1 по 15"
+        ws.cell(1, 5).value = "Кол-во неполных смен\nс 1 по 15"
+        ws.cell(1, 6).value = "Сумма зарплаты\nc 15-го до конца месяца"
+        ws.cell(1, 7).value = "Кол-во полных смен\nc 15-го до конца месяца"
+        ws.cell(1, 8).value = "Кол-во неполных смен\nc 15-го до конца месяца"
+        ws.cell(1, 9).value = "Сумма зарплаты\nза весь месяц"
+        ws.cell(1, 10).value = "Кол-во полных смен\nза весь месяц"
+        ws.cell(1, 11).value = "Кол-во неполных смен\nза весь месяц"
+        ws.cell(1, 12).value = "Должность"
+        ws.cell(1, 13).value = "Отдел"
+        ws.cell(1, 14).value = "Табельный номер"
+        ws.cell(1, 15).value = "id"
+
+        # Устанавливаем выравнивание по центру и перенос текста, шрифт, бордеры, а также заливку
+        for col in range(1, 16):
+            ws.cell(1, col).alignment = Alignment(
+                horizontal="center",
+                vertical="center",
+                wrap_text=True,
+            )
+            ws.cell(1, col).fill = PatternFill(
+                start_color="00339966",
+                end_color="00339966",
+                fill_type="solid",
+            )
+
+            ws.cell(1, col).border = Border(
+                left=Side(border_style="thin", color="000000"),
+                right=Side(border_style="thin", color="000000"),
+                top=Side(border_style="thin", color="000000"),
+                bottom=Side(border_style="thin", color="000000"),
+            )
+
+            ws.cell(1, col).font = Font(
+                bold=True,
+                color="00FFFFFF",
+                name="Arial",
+            )
 
         ws.column_dimensions['A'].width = 20
-        ws.column_dimensions['B'].width = 20
+        ws.column_dimensions['B'].width = 23
         ws.column_dimensions['C'].width = 20
         ws.column_dimensions['D'].width = 20
         ws.column_dimensions['E'].width = 23
@@ -565,6 +609,12 @@ class SalaryReader(QMainWindow):
         ws.column_dimensions['G'].width = 20
         ws.column_dimensions['H'].width = 20
         ws.column_dimensions['I'].width = 20
+        ws.column_dimensions['J'].width = 20
+        ws.column_dimensions['K'].width = 20
+        ws.column_dimensions['L'].width = 20
+        ws.column_dimensions['M'].width = 20
+        ws.column_dimensions['N'].width = 20
+        ws.column_dimensions['O'].width = 20
 
         for row in range(self.ui.salar_table.rowCount()):
             for col in range(self.ui.salar_table.columnCount()):
