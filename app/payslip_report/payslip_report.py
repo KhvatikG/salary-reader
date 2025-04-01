@@ -158,16 +158,16 @@ class ReportGenerator:
 
         # Размеры таблицы
         table_width = 70 * mm
-        table_height = 130 * mm
+        table_height = 140 * mm
 
         # Позиции на странице для таблиц
         positions = [
             (1 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
             (71 * mm, A4[1] - 10 * mm - table_height),  # Верх-центр
             (141 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
-            (1 * mm, A4[1] - 150 * mm - table_height),  # Низ-лево
-            (71 * mm, A4[1] - 150 * mm - table_height),  # Низ-центр
-            (141 * mm, A4[1] - 150 * mm - table_height)  # Низ-право
+            (1 * mm, A4[1] - 155 * mm - table_height),  # Низ-лево
+            (71 * mm, A4[1] - 155 * mm - table_height),  # Низ-центр
+            (141 * mm, A4[1] - 155 * mm - table_height)  # Низ-право
         ]
 
         first_page = True
