@@ -85,7 +85,7 @@ class SalaryReader(AcrylicWindow):
         self.titleBar.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
         self.titleBar.raise_()
 
-        self.DEBUG = True
+        self.DEBUG = False
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
         # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
         self.payslip_generator = ReportGenerator(self.salary_table_controller)
