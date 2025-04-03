@@ -4,7 +4,6 @@ import os
 import sys
 from typing import Type
 
-from PySide6 import QtCore
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIntValidator, QIcon, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
@@ -12,10 +11,10 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledIte
 from loguru import logger
 from openpyxl.styles import Alignment, PatternFill, Border, Side, Font
 from openpyxl.workbook import Workbook
-from qframelesswindow import FramelessWindow, AcrylicWindow, TitleBar, StandardTitleBar
+from qframelesswindow import AcrylicWindow, TitleBar, StandardTitleBar
 
 from app.drivers.attendances import AttendancesDataDriver
-from app.models import Employee, MotivationProgram, Department, MotivationThreshold
+from app.models import Employee, MotivationProgram, Department
 from app.models.control_models import delete_motivation_program, get_current_roles_by_department_code, thresholds_clear, \
     get_employees_by_motivation_program_id
 from app.payslip_report.payslip_report import ReportGenerator
@@ -26,7 +25,6 @@ from app.helpers.helpers import get_icon_from_svg, set_departments, get_departme
 from app.db import get_session
 from app.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 from app.iiko_business_api.employees import update_employees_from_api
-from title_bar import CustomTitleBar
 
 with get_session() as session:
     EMPLOYEES_INIT = session.query(Employee).all()
