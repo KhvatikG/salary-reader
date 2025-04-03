@@ -57,13 +57,49 @@ class EmployeeId(str):
 
 
 class Attendance:
+    """
+    Класс, представляющий собой явку сотрудника.
+
+    Атрибуты класса:
+
+    :var employee_id: Идентификатор сотрудника.
+    :var date_from Дата и время начала явки.
+    :var date_to Дата и время окончания явки.
+    :var attendance_date Дата явки.
+    :var duration Продолжительность явки.
+    :var attendance_string Строковое представление явки.
+    """
+
     def __init__(self, employee_id: EmployeeId, date_from: datetime, date_to: datetime):
         self.employee_id = employee_id
         self.date_from = date_from
         self.date_to = date_to
+
+        # Если явка закрыта после 22 часов, то устанавливается 22 часа.(чтобы не учитывать время после смены)
+        if date_to.hour > 22:
+            logger.warning(
+                f"Время явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} больше 22 часов. "
+                f"Устанавливается 22 часа."
+            )
+            self.date_to = self.date_to.replace(hour=22, minute=0, second=0, microsecond=0)
+
         self.attendance_date = date_from.date()
         # Продолжительность явки
-        self.duration: timedelta = self.date_to - self.date_from
+        if date_from.date() == date_to.date():
+            if self.date_from.hour < 22:
+                self.duration: timedelta = self.date_to - self.date_from
+            else:  # Если смена открыта после 22 часов, то продолжительность явки будет 0 часов.
+                self.duration = timedelta(hours=0)
+        else:
+            error_msg = f"Явка сотрудника {employee_id} на {date_from.strftime('%d.%m.%Y')} больше одного дня."
+            logger.exception(error_msg)
+            self.duration = timedelta(hours=0)
+
+        # Округление длительности явки до 30 минут(если остаток больше 15 минут, то округляем до 30 минут)
+        minutes = self.duration.total_seconds() / 60
+        rounded_minutes = round(minutes / 30) * 30
+        self.duration = timedelta(minutes=rounded_minutes)
+
         # Строка отражающая период явки
         self.attendance_string = f'{self.date_from.strftime("%H:%M")} - {self.date_to.strftime("%H:%M")}'
 
@@ -131,25 +167,38 @@ class AttendancesList:
 
             # TODO: Вынести в настройки пороги длительности явки
             hours_duration = duration_.total_seconds() / 3600
+
+            employee_attendances_data["total_duration_seconds"] += duration_.total_seconds()
+
             if hours_duration >= FULL_SHIFT_HOURS:
                 if 1 <= date_.day <= 15:
                     employee_attendances_data["full_shifts_count_from_1"] += 1
                 elif 16 <= date_.day <= 31:
                     employee_attendances_data["full_shifts_count_from_16"] += 1
                 employee_attendances_data["full_shifts_count"] += 1
-                employee_attendances_data["total_duration_seconds"] += duration_.total_seconds()
-                employee_attendances_data["shifts"].update({date_: ShiftType("full")})
+                employee_attendances_data["shifts"].update({
+                    date_: {"shift_type": ShiftType("full"),
+                            "hours_duration": hours_duration,
+                            }
+                })
             elif hours_duration >= HALF_SHIFT_HOURS:
                 if 1 <= date_.day <= 15:
                     employee_attendances_data["half_shifts_count_from_1"] += 1
                 elif 16 <= date_.day <= 31:
                     employee_attendances_data["half_shifts_count_from_16"] += 1
                 employee_attendances_data["half_shifts_count"] += 1
-                employee_attendances_data["total_duration_seconds"] += duration_.total_seconds()
-                employee_attendances_data["shifts"].update({date_: ShiftType("half")})
+                employee_attendances_data["shifts"].update({
+                    date_: {"shift_type": ShiftType("half"),
+                            "hours_duration": hours_duration,
+                            }
+                })
             else:
                 employee_attendances_data["warnings"] = True
-                employee_attendances_data["shifts"].update({date_: ShiftType("warning")})
+                employee_attendances_data["shifts"].update({
+                    date_: {"shift_type": ShiftType("warning"),
+                            "hours_duration": hours_duration,
+                            }
+                })
 
         return employee_attendances_data
 
@@ -243,10 +292,18 @@ class AttendancesDataDriver:
                      f"  кол-во явок в списке:{len(self.employees_attendances)}\n"
                      f"  Явки{self.employees_attendances.attendances}\n\n")
 
-    def calculate_salary(self, employee_id: EmployeeId, date_: date, shift_type: ShiftType) -> int:
+    def calculate_salary(
+            self, employee_id: EmployeeId,
+            date_: date,
+            shift_type: ShiftType,
+            duration_seconds: int = None,
+            per_hour: bool = False
+    ) -> int:
         """
         Считает вознаграждение сотрудника по его мотивационной программе за определенную дату.
 
+        :param duration_seconds: Продолжительность явки в секундах
+        :param per_hour: Почасовой расчет вознаграждения, если включен, то расчет происходит по часам работы сотрудника
         :param employee_id: Id сотрудника
         :param date_: Дата
         :param shift_type: Тип смены: полный день или половина дня full | half
@@ -285,13 +342,20 @@ class AttendancesDataDriver:
                              f"{threshold.revenue_threshold=} {threshold.salary=} {threshold.id=}")
 
                 logger.debug(f"Тип смены: {shift_type}")
-                match shift_type:
-                    case ShiftType.FULL:
-                        logger.debug(f"Полная смена возвращаем: {threshold.salary}")
-                        return threshold.salary
-                    case ShiftType.HALF:
-                        logger.debug(f"Пол смены получаем половину: {threshold.salary / 2}")
-                        return int(threshold.salary / 2)
+                if per_hour:
+                    if duration_seconds > 0:
+                        duration_hours = duration_seconds / 3600
+                        return int(threshold.salary / 12 * duration_hours)
+                    else:
+                        return 0
+                else:
+                    match shift_type:
+                        case ShiftType.FULL:
+                            logger.debug(f"Полная смена возвращаем: {threshold.salary}")
+                            return threshold.salary
+                        case ShiftType.HALF:
+                            logger.debug(f"Пол смены получаем половину: {threshold.salary / 2}")
+                            return int(threshold.salary / 2)
 
             return 0
 
@@ -345,11 +409,19 @@ class AttendancesDataDriver:
 
             # TODO: Возможно стоит перенести
             self.employees_shifts[employee_.get("id")] = employee_attendances_data['shifts'].copy()
+            print(employee_attendances_data)
+            for date_, data in employee_attendances_data['shifts'].items():
 
-            for date_, shift_type in employee_attendances_data['shifts'].items():
-
+                shift_type = data['shift_type']
+                hours_duration = data['hours_duration']
                 if date_ in self.sales:
-                    salary_ = self.calculate_salary(employee_id, date_, shift_type)
+                    salary_ = self.calculate_salary(
+                        employee_id,
+                        date_,
+                        shift_type,
+                        per_hour=True,
+                        duration_seconds=hours_duration * 3600
+                    )
                     logger.debug(f"ЗП за {date_}: {salary_}")
                 else:
                     logger.warning(f"Дата {date_} не найдена в отчете о продажах")
@@ -387,7 +459,7 @@ class AttendancesDataDriver:
         try:
             rows = self.get_general_table_rows()
         except Exception as err:
-            logger.error(f"Произошла ошибка при получении данных для сводной таблицы:\n{err}")
+            logger.exception(f"Произошла ошибка при получении данных для сводной таблицы:\n{err}")
             raise err
 
         self.general_table.setRowCount(0)
@@ -444,7 +516,7 @@ class AttendancesDataDriver:
         :param date_: Дата явки
         :return: Тип смены
         """
-        return ShiftType(self.employees_shifts[employee_id][date_])
+        return ShiftType(self.employees_shifts[employee_id][date_]["shift_type"])
 
     def get_detailed_table_rows(self, employee_id: str) -> list:
         """
@@ -466,11 +538,19 @@ class AttendancesDataDriver:
                 period = [attendance.attendance_string for attendance in employee_attendance]
                 period = "\n".join(period)
                 logger.debug(f"Строка периода явок сформирована: {period}")
+                attendance_duration = sum([attendance.duration.total_seconds() for attendance in employee_attendance])
             else:
                 period = employee_attendance[0].attendance_string
+                attendance_duration = employee_attendance[0].duration.total_seconds()
 
             shift_type = self.get_shift_type(employee_id, date_)
-            salary = self.calculate_salary(employee_id, date_, shift_type)
+            salary = self.calculate_salary(
+                employee_id,
+                date_,
+                shift_type,
+                per_hour=True,
+                duration_seconds=attendance_duration
+            )
 
             rows.append({
                 "date": date_,
@@ -524,5 +604,3 @@ class AttendancesDataDriver:
         # Устанавливаем размер окна по размеру таблицы
         self.detailed_table.resize(self.detailed_table.size())
         self.detailed_table.show()
-
-

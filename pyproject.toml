@@ -13,10 +13,12 @@ loguru = "^0.7.2"
 sqlalchemy = "^2.0.36"
 xmltodict = "^0.14.2"
 python-dotenv = "^1.0.1"
-pyside6 = "^6.8.0.2"
 pywin32 = "^308"
 openpyxl = "^3.1.5"
 reportlab = "^4.3.0"
+pysidesix-frameless-window = "^0.5.1"
+pyside6 = "^6.9.0"
+
 
 [build-system]
 requires = ["poetry-core"]

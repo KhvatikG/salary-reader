@@ -4,13 +4,15 @@ import os
 import sys
 from typing import Type
 
+from PySide6 import QtCore
 from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QIntValidator, QIcon
+from PySide6.QtGui import QIntValidator, QIcon, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton
+    QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton, QWidget, QVBoxLayout
 from loguru import logger
 from openpyxl.styles import Alignment, PatternFill, Border, Side, Font
 from openpyxl.workbook import Workbook
+from qframelesswindow import FramelessWindow, AcrylicWindow, TitleBar, StandardTitleBar
 
 from app.drivers.attendances import AttendancesDataDriver
 from app.models import Employee, MotivationProgram, Department, MotivationThreshold
@@ -24,6 +26,7 @@ from app.helpers.helpers import get_icon_from_svg, set_departments, get_departme
 from app.db import get_session
 from app.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 from app.iiko_business_api.employees import update_employees_from_api
+from title_bar import CustomTitleBar
 
 with get_session() as session:
     EMPLOYEES_INIT = session.query(Employee).all()
@@ -39,12 +42,52 @@ class NumericDelegate(QStyledItemDelegate):
         return editor
 
 
-class SalaryReader(QMainWindow):
-    def __init__(self):
-        super().__init__()
+class CustomTitleBar(TitleBar):
+    """ Custom title bar """
+
+    def __init__(self, parent):
+        super().__init__(parent)
+
+        # customize the style of title bar button
+        self.minBtn.setHoverColor(Qt.white)
+        self.minBtn.setHoverBackgroundColor(QColor(0, 100, 182))
+        self.minBtn.setPressedColor(Qt.white)
+        self.minBtn.setPressedBackgroundColor(QColor(54, 57, 65))
+
+        # use qss to customize title bar button
+        self.maxBtn.setStyleSheet("""
+            TitleBarButton {
+                qproperty-normalColor: black;
+                qproperty-normalBackgroundColor: transparent;
+                qproperty-hoverColor: white;
+                qproperty-hoverBackgroundColor: rgb(0, 100, 182);
+                qproperty-pressedColor: white;
+                qproperty-pressedBackgroundColor: rgb(54, 57, 65);
+            }
+        """)
+
+
+class SalaryReader(AcrylicWindow):
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+        # Создаем внутренний QMainWindow для работы с UI из Designer
+        self.main_widget = QMainWindow()
         self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
-        self.DEBUG = False
+        self.ui.setupUi(self.main_widget)  # Устанавливаем UI в QMainWindow
+
+        # Добавляем QMainWindow в FramelessWindow
+        self.setCentralWidget(self.main_widget)
+
+        # Включить стандартный TitleBar с кнопками
+        self.setTitleBar(StandardTitleBar(self))
+        self.setWindowIcon(QIcon("app/ui/icons/export-icon.png"))
+        self.setWindowTitle("Kult Salary Reader")
+        # Устанавливаем стиль для заголовка окна и цвет текста заголовка
+        self.titleBar.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
+        self.titleBar.raise_()
+
+        self.DEBUG = True
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
         # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
         self.payslip_generator = ReportGenerator(self.salary_table_controller)
@@ -132,6 +175,13 @@ class SalaryReader(QMainWindow):
 
         # Печать ведомостей в pdf по 4 таблицы(сотрудника) на листе
         self.ui.button_payslip_report.clicked.connect(self.payslip_report_callback)
+
+    def setCentralWidget(self, widget: QWidget):
+        # Переопределяем метод, чтобы добавить виджет в FramelessWindow
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(widget)
+        self.setLayout(layout)
 
     # TODO: Применить ко всем ошибкам, которые возникают при работе программы
     def show_error_message(self, message, title=None) -> None:

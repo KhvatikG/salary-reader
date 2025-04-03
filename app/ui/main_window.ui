@@ -23,6 +23,9 @@ background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgb
     <string notr="true"/>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="topMargin">
+     <number>32</number>
+    </property>
     <item>
      <widget class="QComboBox" name="department">
       <property name="styleSheet">
@@ -484,7 +487,7 @@ border: none;</string>
               <second>0</second>
               <year>2024</year>
               <month>10</month>
-              <day>28</day>
+              <day>27</day>
              </datetime>
             </property>
             <property name="time">
@@ -535,7 +538,7 @@ border: none;</string>
               <second>0</second>
               <year>2024</year>
               <month>11</month>
-              <day>11</day>
+              <day>10</day>
              </datetime>
             </property>
             <property name="time">

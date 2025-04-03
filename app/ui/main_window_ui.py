@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'main_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.8.0
+## Created by: Qt User Interface Compiler version 6.9.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -34,6 +34,7 @@ class Ui_MainWindow(object):
         self.centralwidget.setStyleSheet(u"")
         self.verticalLayout_2 = QVBoxLayout(self.centralwidget)
         self.verticalLayout_2.setObjectName(u"verticalLayout_2")
+        self.verticalLayout_2.setContentsMargins(-1, 32, -1, -1)
         self.department = QComboBox(self.centralwidget)
         self.department.addItem("")
         self.department.addItem("")
@@ -336,7 +337,7 @@ class Ui_MainWindow(object):
         self.date_from.setStyleSheet(u"")
         self.date_from.setWrapping(False)
         self.date_from.setProperty(u"showGroupSeparator", False)
-        self.date_from.setDateTime(QDateTime(QDate(2024, 10, 28), QTime(0, 0, 0)))
+        self.date_from.setDateTime(QDateTime(QDate(2024, 10, 27), QTime(0, 0, 0)))
         self.date_from.setTime(QTime(0, 0, 0))
         self.date_from.setMinimumDate(QDate(2020, 1, 1))
         self.date_from.setCalendarPopup(True)
@@ -357,7 +358,7 @@ class Ui_MainWindow(object):
         self.date_to = QDateEdit(self.salary_panel)
         self.date_to.setObjectName(u"date_to")
         self.date_to.setStyleSheet(u"")
-        self.date_to.setDateTime(QDateTime(QDate(2024, 11, 11), QTime(0, 0, 0)))
+        self.date_to.setDateTime(QDateTime(QDate(2024, 11, 10), QTime(0, 0, 0)))
         self.date_to.setTime(QTime(0, 0, 0))
         self.date_to.setMinimumDateTime(QDateTime(QDate(2020, 1, 1), QTime(0, 0, 0)))
         self.date_to.setMinimumDate(QDate(2020, 1, 1))
