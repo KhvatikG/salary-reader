@@ -78,10 +78,17 @@ class Attendance:
         # Если явка закрыта после 22 часов, то устанавливается 22 часа.(чтобы не учитывать время после смены)
         if date_to.hour > 22:
             logger.warning(
-                f"Время явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} больше 22 часов. "
-                f"Устанавливается 22 часа."
+                f"Время окончания явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} больше 22:00. "
+                f"Устанавливаем 22 часа."
             )
             self.date_to = self.date_to.replace(hour=22, minute=0, second=0, microsecond=0)
+
+        if self.date_from.hour < 10:
+            logger.warning(
+                f"Время явки сотрудника {employee_id} на {date_from.strftime('%d.%m.%Y')} меньше 10:00."
+                f"Устанавливаем 10 часов."
+            )
+            self.date_from = self.date_from.replace(hour=10, minute=0, second=0, microsecond=0)
 
         self.attendance_date = date_from.date()
         # Продолжительность явки
