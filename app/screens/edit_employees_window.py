@@ -14,11 +14,11 @@ from app.ui.styles import WARNING_DIALOG_STYLE
 
 
 class EditEmployeesWindow(QDialog, Ui_Dialog):
-    def __init__(self, role_id: str):
+    def __init__(self, role_id: str, parent=None):
         """
         :param role_id: id роли для которой открыто окно редактирования сотрудников.
         """
-        super().__init__()
+        super().__init__(parent=parent)
         self.setupUi(self)
         print(f"В новом окне {role_id=}")
         self.current_role_id = role_id

@@ -78,7 +78,7 @@ class SalaryReader(AcrylicWindow):
         self.setCentralWidget(self.main_widget)
 
         # Включить стандартный TitleBar с кнопками
-        self.setTitleBar(StandardTitleBar(self))
+        self.setTitleBar(StandardTitleBar(self.main_widget))
         self.setWindowIcon(QIcon("app/ui/icons/export-icon.png"))
         self.setWindowTitle("Kult Salary Reader")
         # Устанавливаем стиль для заголовка окна и цвет текста заголовка
@@ -591,7 +591,7 @@ class SalaryReader(AcrylicWindow):
         motivation_program_name = motivation_program.text()
         print(f"Передаю role_id в новое окно - {motivation_program_id}")
         # Сохраняем ссылку на окно, чтобы оно сразу не закрылось сборщиком мусора.
-        self.edit_employees_window = EditEmployeesWindow(motivation_program_id)
+        self.edit_employees_window = EditEmployeesWindow(motivation_program_id, parent=self)
         self.edit_employees_window.setWindowTitle(f"Сотрудники программы мотивации {motivation_program_name}")
         self.edit_employees_window.show()
         self.edit_employees_window.exec()
