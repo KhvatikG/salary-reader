@@ -279,9 +279,9 @@ class AttendancesDataDriver:
                     continue
 
             logger.debug(f"Обработка явки:\n  {attendance=}")
-            date_from = datetime.fromisoformat(attendance['personalDateFrom'])
+            date_from = datetime.fromisoformat(attendance['dateFrom'])
             # Если у смены нет времени закрытия, то ставим время открытия(скорее всего это сегодняшняя смена)
-            date_to = datetime.fromisoformat(attendance.get('personalDateTo', attendance['personalDateFrom']))
+            date_to = datetime.fromisoformat(attendance.get('dateTo', attendance['dateFrom']))
             # TODO: Вынести расписание в настройки
             # Если открыта в промежуток между 07:00 и 22:00
             if 7 <= date_from.hour <= 22:
