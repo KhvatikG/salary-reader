@@ -147,7 +147,7 @@ class SalaryReader(AcrylicWindow):
         # Сводная таблица зарплат
         self.ui.date_from.setDate(QDate.currentDate())
         self.ui.date_to.setDate(QDate.currentDate())
-        self.ui.salar_table.setColumnCount(15)
+        self.ui.salar_table.setColumnCount(17)
         self.ui.salar_table.setHorizontalHeaderLabels(
             ["ФИО",
              "Полное имя",
@@ -160,6 +160,8 @@ class SalaryReader(AcrylicWindow):
              "Сумма ЗП\n за весь месяц",
              "Кол-во полных смен\n за весь месяц",
              "Кол-во неполных смен\n за весь месяц",
+             "Кол-во оплаченных\nпоездок такси",
+             "Сумма оплаченных\nпоездок такси",
              "Роль", "Отдел", "Табельный", "id"]
         )
         self.ui.salar_table.setSortingEnabled(True)
@@ -617,10 +619,12 @@ class SalaryReader(AcrylicWindow):
         ws.cell(1, 9).value = "Сумма зарплаты\nза весь месяц"
         ws.cell(1, 10).value = "Кол-во полных смен\nза весь месяц"
         ws.cell(1, 11).value = "Кол-во неполных смен\nза весь месяц"
-        ws.cell(1, 12).value = "Должность"
-        ws.cell(1, 13).value = "Отдел"
-        ws.cell(1, 14).value = "Табельный номер"
-        ws.cell(1, 15).value = "id"
+        ws.cell(1, 12).value = "Кол-во оплаченных\nпоездок такси"
+        ws.cell(1, 13).value = "Сумма оплаченных\nпоездок такси"
+        ws.cell(1, 14).value = "Должность"
+        ws.cell(1, 15).value = "Отдел"
+        ws.cell(1, 16).value = "Табельный номер"
+        ws.cell(1, 17).value = "id"
 
         # Устанавливаем выравнивание по центру и перенос текста, шрифт, бордеры, а также заливку
         for col in range(1, 16):

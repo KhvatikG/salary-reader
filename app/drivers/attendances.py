@@ -110,6 +110,12 @@ class Attendance:
         # Строка отражающая период явки
         self.attendance_string = f'{self.date_from.strftime("%H:%M")} - {self.date_to.strftime("%H:%M")}'
 
+        if (self.duration > timedelta(hours=6)) and (self.date_to.hour > 20):
+
+            self.is_taxi_paid = True
+        else:
+            self.is_taxi_paid = False
+
     def __str__(self):
         return f'Явка сотрудника {self.employee_id}: {self.attendance_string}'
 
@@ -161,21 +167,32 @@ class AttendancesList:
             "total_shifts_count_from_16": 0,
             "total_duration_seconds": 0,
             "shifts": {},
+            "taxi_paid_count": 0,
+            "taxi_paid_sum": 0
         }
 
         for date_ in employee_attendances:
             duration_ = timedelta()
+            is_taxi_paid = False
             if len(employee_attendances[date_]) > 1:
                 employee_attendances_data["warnings"] = True
                 for attendance_ in employee_attendances[date_]:
                     duration_ += attendance_.duration
+                    if attendance_.is_taxi_paid:
+                        is_taxi_paid = True
             else:
                 duration_ = employee_attendances[date_][0].duration
+                if employee_attendances[date_][0].is_taxi_paid:
+                    is_taxi_paid = True
 
             # TODO: Вынести в настройки пороги длительности явки
             hours_duration = duration_.total_seconds() / 3600
 
             employee_attendances_data["total_duration_seconds"] += duration_.total_seconds()
+
+            if is_taxi_paid:
+                employee_attendances_data["taxi_paid_count"] += 1
+                employee_attendances_data["taxi_paid_sum"] += 150
 
             if hours_duration >= FULL_SHIFT_HOURS:
                 if 1 <= date_.day <= 15:
@@ -215,6 +232,8 @@ class AttendancesList:
         :param employee_id: Идентификатор сотрудника в iiko
         :return: Словарь с датами и явками в эти даты
         """
+        logger.info(f"Получение данных по явкам сотрудника {employee_id}")
+        logger.info(f"{self.attendances=}")
         return self.attendances[employee_id]
 
 
@@ -455,6 +474,7 @@ class AttendancesDataDriver:
                 "salary": total_salary,
                 "from_1_salary": from_1_total_salary,
                 "from_16_salary": from_16_total_salary,
+
             })
             rows.append(employee_attendances_data)
         return rows
@@ -471,7 +491,7 @@ class AttendancesDataDriver:
 
         self.general_table.setRowCount(0)
         self.general_table.setRowCount(len(rows))
-        self.general_table.setColumnCount(15)
+        self.general_table.setColumnCount(17)
 
         for row_index, row_data in enumerate(rows):
 
@@ -486,10 +506,12 @@ class AttendancesDataDriver:
             self.general_table.setItem(row_index, 8, QTableWidgetItem(str(row_data['salary'])))
             self.general_table.setItem(row_index, 9, QTableWidgetItem(str(row_data['full_shifts_count'])))
             self.general_table.setItem(row_index, 10, QTableWidgetItem(str(row_data['half_shifts_count'])))
-            self.general_table.setItem(row_index, 11, QTableWidgetItem(str(row_data['role'])))
-            self.general_table.setItem(row_index, 12, QTableWidgetItem(str(row_data['departments'])))
-            self.general_table.setItem(row_index, 13, QTableWidgetItem(str(row_data['code'])))
-            self.general_table.setItem(row_index, 14, QTableWidgetItem(str(row_data['id'])))
+            self.general_table.setItem(row_index, 11, QTableWidgetItem(str(row_data['taxi_paid_count'])))
+            self.general_table.setItem(row_index, 12, QTableWidgetItem(str(row_data['taxi_paid_sum'])))
+            self.general_table.setItem(row_index, 13, QTableWidgetItem(str(row_data['role'])))
+            self.general_table.setItem(row_index, 14, QTableWidgetItem(str(row_data['departments'])))
+            self.general_table.setItem(row_index, 15, QTableWidgetItem(str(row_data['code'])))
+            self.general_table.setItem(row_index, 16, QTableWidgetItem(str(row_data['id'])))
 
             if row_data['warnings']:  # Если есть предупреждение
                 for col_index in range(self.general_table.columnCount()):
@@ -508,7 +530,7 @@ class AttendancesDataDriver:
         """
         Вызывается при двойном клике на строке таблицы с общей информацией о зарплате.
         """
-        employee_id = self.general_table.item(item.row(), 14).text()
+        employee_id = self.general_table.item(item.row(), 16).text()
         employee_name = self.general_table.item(item.row(), 0).text()
         self.render_detailed_table(
             parent=self.general_table,
@@ -535,11 +557,14 @@ class AttendancesDataDriver:
 
         logger.debug(f"Смены сотрудника {employee_id}:\n  {self.employees_shifts[employee_id]}")
 
+        is_taxi_paid = False
+
         for date_, employee_attendance in employee_attendances_data.items():
             warning = False
             logger.debug(f"Обрабатываем дату {date_}")
             # Если количество явок за дату date_ больше 1
             if len(employee_attendance) > 1:
+                is_taxi_paid = "?"
                 logger.debug(f"Обнаружено больше одной явки у {employee_id} за дату: {date_}")
                 warning = True
                 period = [attendance.attendance_string for attendance in employee_attendance]
@@ -547,6 +572,7 @@ class AttendancesDataDriver:
                 logger.debug(f"Строка периода явок сформирована: {period}")
                 attendance_duration = sum([attendance.duration.total_seconds() for attendance in employee_attendance])
             else:
+                is_taxi_paid = employee_attendance[0].is_taxi_paid
                 period = employee_attendance[0].attendance_string
                 attendance_duration = employee_attendance[0].duration.total_seconds()
 
@@ -564,6 +590,7 @@ class AttendancesDataDriver:
                 "shift_type": str(shift_type),
                 "period": period,
                 "salary": salary,
+                "is_taxi_paid": is_taxi_paid,
                 "warning": warning,
             })
         return rows
@@ -576,10 +603,19 @@ class AttendancesDataDriver:
         # Создаем всплывающее окно с таблицей
         self.detailed_table = QTableWidget()
         self.detailed_table.setRowCount(len(rows))
-        self.detailed_table.setColumnCount(4)
-        self.detailed_table.setHorizontalHeaderLabels(["Дата", "Смена", "Период", "Зарплата"])
+        self.detailed_table.setColumnCount(5)
+        self.detailed_table.setHorizontalHeaderLabels(["Дата", "Смена", "Период", "Зарплата", "Такси"])
 
         for row, row_data in enumerate(rows):
+            logger.debug(f"Такси оплачено: {row_data['is_taxi_paid']}")
+            if row_data['is_taxi_paid']:
+                if row_data['is_taxi_paid'] == "?":
+                    self.detailed_table.setItem(row, 4, QTableWidgetItem("?"))
+                else:
+                    self.detailed_table.setItem(row, 4, QTableWidgetItem("150"))
+            else:
+                self.detailed_table.setItem(row, 4, QTableWidgetItem("0"))
+
             self.detailed_table.setItem(row, 0, QTableWidgetItem(str(row_data['date'])))
             self.detailed_table.setItem(row, 1, QTableWidgetItem(str(row_data['shift_type'])))
             self.detailed_table.setItem(row, 2, QTableWidgetItem(str(row_data['period'])))
