@@ -7,7 +7,7 @@ from typing import Type
 from PySide6.QtCore import Qt, QDate
 from PySide6.QtGui import QIntValidator, QIcon, QColor
 from PySide6.QtWidgets import QApplication, QMainWindow, QMessageBox, QStyledItemDelegate, QLineEdit, \
-    QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton, QWidget, QVBoxLayout
+    QTableWidgetItem, QListWidgetItem, QAbstractItemView, QPushButton, QWidget, QVBoxLayout, QTableWidget
 from loguru import logger
 from openpyxl.styles import Alignment, PatternFill, Border, Side, Font
 from openpyxl.workbook import Workbook
@@ -19,6 +19,9 @@ from app.models.control_models import delete_motivation_program, get_current_rol
     get_employees_by_motivation_program_id
 from app.payslip_report.payslip_report import ReportGenerator
 from app.screens.edit_employees_window import EditEmployeesWindow
+from app.styles.department_combo_box import DEPARTMENT_COMBO_BOX
+from app.styles.general_salary_table import GTS_TABLE_STYLE
+from app.styles.general_table_excel_button import G_EXCEL_BUTTON
 from app.ui.controllers.table_controller import ThresholdsTableController
 from app.ui.main_window_ui import Ui_MainWindow
 from app.helpers.helpers import get_icon_from_svg, set_departments, get_department_code
@@ -85,7 +88,12 @@ class SalaryReader(AcrylicWindow):
         self.titleBar.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
         self.titleBar.raise_()
 
-        self.DEBUG = False
+        self.DEBUG = True
+        self.ui.salar_table.setStyleSheet(GTS_TABLE_STYLE)
+        self.ui.salar_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.ui.salar_table.setSelectionMode(QTableWidget.SingleSelection)
+        self.ui.salar_table.verticalHeader().setVisible(False)
+
         self.salary_table_controller = AttendancesDataDriver(self.ui.salar_table)
         # Передаем ссылку на объект AttendancesDataDriver для возможности использования методов
         self.payslip_generator = ReportGenerator(self.salary_table_controller)
@@ -97,6 +105,7 @@ class SalaryReader(AcrylicWindow):
         self.ui.department.currentIndexChanged.connect(  # При выборе отдела выводим список его программ
             self.set_current_roles
         )
+        self.ui.department.setStyleSheet(DEPARTMENT_COMBO_BOX)
 
         # Программы мотивации(Список)
         self.set_current_roles()  # На старте выводим список программ выбранного отдела
@@ -171,6 +180,7 @@ class SalaryReader(AcrylicWindow):
         excel_icon = QIcon('app/ui/icons/excel.svg')
         self.excel_button = QPushButton(icon=excel_icon, parent=self.ui.salar_table)
         self.excel_button.setGeometry(1, 1, 23, 23)
+        self.excel_button.setStyleSheet(G_EXCEL_BUTTON)
         self.excel_button.clicked.connect(self.export_to_excel)
 
         # Печать ведомостей в pdf по 4 таблицы(сотрудника) на листе
