@@ -435,7 +435,6 @@ class AttendancesDataDriver:
 
             # TODO: Возможно стоит перенести
             self.employees_shifts[employee_.get("id")] = employee_attendances_data['shifts'].copy()
-            print(employee_attendances_data)
             for date_, data in employee_attendances_data['shifts'].items():
 
                 shift_type = data['shift_type']
