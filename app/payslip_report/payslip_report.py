@@ -14,6 +14,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 import os
 import subprocess
 
+from app.drivers.attendances import AttendancesDataDriver
 from app.models.control_models import get_employee_name_by_id
 
 pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
@@ -21,7 +22,7 @@ pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
 
 class ReportGenerator:
     def __init__(self, parent):
-        self.parent = parent
+        self.parent: AttendancesDataDriver = parent
         self.font_name = "DejaVuSans"
 
     def _group_by_month(self, rows):
@@ -228,8 +229,20 @@ class ReportGenerator:
         """
         try:
             logger.info(f"Строим отчет по зарплате за период {from_date} - {to_date}")
-            employee_ids = [emp_id for emp_id in self.parent.employees_attendances.attendances]
+
+            employee_ids = []
+            for row_num in range(self.parent.general_table.rowCount()):
+                employee_id = self.parent.general_table.item(row_num, 16).text()
+                employee_ids.append(employee_id)
+
+            if not employee_ids:
+                logger.warning("Нет сотрудников для отчета")
+                return
+            else:
+                logger.info(f"Сотрудники для отчета: {employee_ids}")
+                logger.info(f"Генерируем отчет...")
             self.generate_payslip_report(employee_ids, from_date, to_date)
+
         except PermissionError as e:
             logger.exception(e)
             raise
