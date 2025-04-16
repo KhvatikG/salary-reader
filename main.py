@@ -88,7 +88,7 @@ class SalaryReader(AcrylicWindow):
         self.titleBar.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
         self.titleBar.raise_()
 
-        self.DEBUG = True
+        self.DEBUG = False
         self.ui.salar_table.setStyleSheet(GTS_TABLE_STYLE)
         self.ui.salar_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.ui.salar_table.setSelectionMode(QTableWidget.SingleSelection)

@@ -72,23 +72,27 @@ class Attendance:
 
     def __init__(self, employee_id: EmployeeId, date_from: datetime, date_to: datetime):
         self.employee_id = employee_id
-        self.date_from = date_from
-        self.date_to = date_to
 
         # Если явка закрыта после 22 часов, то устанавливается 22 часа.(чтобы не учитывать время после смены)
-        if date_to.hour > 22:
+        if date_to.hour > 22 or (date_to.hour == 22 and date_to.minute > 0):
             logger.warning(
                 f"Время окончания явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} больше 22:00. "
                 f"Устанавливаем 22 часа."
             )
-            self.date_to = self.date_to.replace(hour=22, minute=0, second=0, microsecond=0)
+            self.date_to = date_to.replace(hour=22, minute=0, second=0, microsecond=0)
+        else:
+            logger.info(f"Время окончания явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} меньше 22:00.")
+            self.date_to = date_to
 
-        if self.date_from.hour < 10:
+        if date_from.hour < 10:
             logger.warning(
                 f"Время явки сотрудника {employee_id} на {date_from.strftime('%d.%m.%Y')} меньше 10:00."
                 f"Устанавливаем 10 часов."
             )
-            self.date_from = self.date_from.replace(hour=10, minute=0, second=0, microsecond=0)
+            self.date_from = date_from.replace(hour=10, minute=0, second=0, microsecond=0)
+        else:
+            logger.info(f"Время явки сотрудника {employee_id} на {date_from.strftime('%d.%m.%Y')} больше 10:00.")
+            self.date_from = date_from
 
         self.attendance_date = date_from.date()
         # Продолжительность явки
@@ -368,6 +372,8 @@ class AttendancesDataDriver:
                              f"{threshold.revenue_threshold=} {threshold.salary=} {threshold.id=}")
 
                 logger.debug(f"Тип смены: {shift_type}")
+                if duration_seconds > 12 * 3600:
+                    duration_seconds = 12 * 3600
                 if per_hour:
                     if duration_seconds > 0:
                         duration_hours = duration_seconds / 3600
@@ -447,7 +453,7 @@ class AttendancesDataDriver:
                         per_hour=True,
                         duration_seconds=hours_duration * 3600
                     )
-                    logger.debug(f"ЗП за {date_}: {salary_}")
+                    logger.debug(f"ЗП за {date_}: {salary_} продолжительность: {hours_duration}")
                 else:
                     logger.warning(f"Дата {date_} не найдена в отчете о продажах")
                     logger.debug(f"Тип переменной даты: {type(date_)=}")
