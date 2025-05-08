@@ -81,7 +81,8 @@ class Attendance:
             )
             self.date_to = date_to.replace(hour=22, minute=0, second=0, microsecond=0)
         else:
-            logger.info(f"Время окончания явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} меньше 22:00.")
+            logger.info(
+                f"Время окончания явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} меньше 22:00.")
             self.date_to = date_to
 
         if date_from.hour < 10:
@@ -496,7 +497,7 @@ class AttendancesDataDriver:
 
         self.general_table.setRowCount(0)
         self.general_table.setRowCount(len(rows))
-        self.general_table.setColumnCount(17)
+        self.general_table.setColumnCount(19)
 
         for row_index, row_data in enumerate(rows):
 
@@ -517,6 +518,8 @@ class AttendancesDataDriver:
             self.general_table.setItem(row_index, 14, QTableWidgetItem(str(row_data['departments'])))
             self.general_table.setItem(row_index, 15, QTableWidgetItem(str(row_data['code'])))
             self.general_table.setItem(row_index, 16, QTableWidgetItem(str(row_data['id'])))
+            self.general_table.setItem(row_index, 17, QTableWidgetItem('0'))
+            self.general_table.setItem(row_index, 18, QTableWidgetItem('0'))
 
             if row_data['warnings']:  # Если есть предупреждение
                 for col_index in range(self.general_table.columnCount()):

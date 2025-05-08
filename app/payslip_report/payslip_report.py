@@ -32,7 +32,16 @@ class ReportGenerator:
             grouped[(d.year, d.month)].append(row)
         return grouped
 
-    def _create_month_table(self, name, year, month, month_rows, date_from=None, date_to=None):
+    def _create_month_table(self,
+                            name,
+                            year,
+                            month,
+                            month_rows,
+                            deduction,
+                            bonus,
+                            date_from=None,
+                            date_to=None
+                            ):
         # Определяем базовые параметры
         month_start = date(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
@@ -69,8 +78,8 @@ class ReportGenerator:
             fontSize=8,
             alignment=1,
             leading=9,
-            spaceBefore=1*mm,
-            spaceAfter=2*mm
+            spaceBefore=1 * mm,
+            spaceAfter=2 * mm
         )
 
         footer_style = ParagraphStyle(
@@ -80,6 +89,10 @@ class ReportGenerator:
             alignment=2,
             leading=9,
         )
+
+        logger.info(f"Генерируем отчёт по месяцу {month}/{year}")
+        logger.info(f"Дни {name}")
+        logger.info(f"bonus {bonus} deduction {deduction}")
 
         # Формируем заголовок
         table_data = [
@@ -129,13 +142,25 @@ class ReportGenerator:
         table_data.append([
             '-', str(full_days), str(partial_days), str(salary_sum)
         ])
+        table_data.append([
+            '-', 'Надбавки', 'Вычеты', 'Итог'
+        ])
+        table_data.append([
+            '-', bonus, deduction, (salary_sum - int(deduction) + int(bonus))
+        ])
 
         return table_data
 
-    def generate_payslip_report(self, employee_ids: list, date_from: datetime, date_to: datetime):
+    def generate_payslip_report(self,
+                                employee_ids: list,
+                                date_from: datetime,
+                                date_to: datetime,
+                                additional_info: dict = None
+                                ):
         """
         Генерация отчета по зарплате
 
+        :param additional_info: Надбавки и вычеты.
         :param employee_ids: ID сотрудников
         :param date_from: Дата начала периода
         :param date_to: Дата конца периода
@@ -143,13 +168,21 @@ class ReportGenerator:
         """
         all_tables = []
         for emp_id in employee_ids:
+            emp_add_data = additional_info.get(emp_id, {}) if additional_info else {}
+            logger.warning(f"Инфо о сотруднике {emp_id}:\n{emp_add_data}")
+            deduction = emp_add_data.get('deduction', 0)
+            bonus = emp_add_data.get('bonus', 0)
+            logger.warning(f"Вычеты {deduction=} {bonus=}")
             name = get_employee_name_by_id(emp_id)
             logger.warning(f"Имя {name}")
             rows = self.parent.get_detailed_table_rows(emp_id)
             for (year, month), month_rows in self._group_by_month(rows).items():
                 all_tables.append(
                     self._create_month_table(
-                    name, year, month, month_rows, date_from, date_to
+                        name, year, month,
+                        month_rows,
+                        deduction, bonus,
+                        date_from, date_to,
                     )
                 )
         logger.debug(f"Начинаем формировать PDF...")
@@ -180,9 +213,9 @@ class ReportGenerator:
 
             page_tables = all_tables[i:i + 6]
 
-            logger.debug(f"Формируем страницу {i//6+1} из {len(all_tables)//6}")
+            logger.debug(f"Формируем страницу {i // 6 + 1} из {len(all_tables) // 6}")
             for idx, table_data in enumerate(page_tables):
-                logger.debug(f"Формируем таблицу {idx+1} из {len(page_tables)}")
+                logger.debug(f"Формируем таблицу {idx + 1} из {len(page_tables)}")
                 t = Table(
                     table_data,
                     colWidths=[14 * mm, 25 * mm, 15 * mm, 9 * mm],
@@ -201,9 +234,10 @@ class ReportGenerator:
                     ('GRID', (0, 1), (-1, -1), 0.5, colors.black),
                     ('BACKGROUND', (0, 1), (-1, 1), colors.lightgrey),
                     ('BACKGROUND', (0, -2), (-1, -2), colors.lightgrey),
+                    ('BACKGROUND', (0, -4), (-1, -4), colors.lightgrey),
                     ('LEADING', (0, 0), (-1, -1), 7),
-                    ('TOPPADDING', (0, 0), (-1, -1), 0.5*mm),
-                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0.5*mm),
+                    ('TOPPADDING', (0, 0), (-1, -1), 0.5 * mm),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 0.5 * mm),
                 ])
                 t.setStyle(style)
 
@@ -231,8 +265,13 @@ class ReportGenerator:
             logger.info(f"Строим отчет по зарплате за период {from_date} - {to_date}")
 
             employee_ids = []
+            add_info = {}
             for row_num in range(self.parent.general_table.rowCount()):
                 employee_id = self.parent.general_table.item(row_num, 16).text()
+                deduction = self.parent.general_table.item(row_num, 17).text()
+                bonus = self.parent.general_table.item(row_num, 18).text()
+                add_info[employee_id] = {"deduction": deduction, "bonus": bonus}
+                logger.info(f"Добавляем {employee_id} {deduction} {bonus}")
                 employee_ids.append(employee_id)
 
             if not employee_ids:
@@ -241,7 +280,8 @@ class ReportGenerator:
             else:
                 logger.info(f"Сотрудники для отчета: {employee_ids}")
                 logger.info(f"Генерируем отчет...")
-            self.generate_payslip_report(employee_ids, from_date, to_date)
+                logger.debug(f"{add_info=}")
+            self.generate_payslip_report(employee_ids, from_date, to_date, add_info)
 
         except PermissionError as e:
             logger.exception(e)

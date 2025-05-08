@@ -156,7 +156,7 @@ class SalaryReader(AcrylicWindow):
         # Сводная таблица зарплат
         self.ui.date_from.setDate(QDate.currentDate())
         self.ui.date_to.setDate(QDate.currentDate())
-        self.ui.salar_table.setColumnCount(17)
+        self.ui.salar_table.setColumnCount(19)
         self.ui.salar_table.setHorizontalHeaderLabels(
             ["ФИО",
              "Полное имя",
@@ -171,7 +171,8 @@ class SalaryReader(AcrylicWindow):
              "Кол-во неполных смен\n за весь месяц",
              "Кол-во оплаченных\nпоездок такси",
              "Сумма оплаченных\nпоездок такси",
-             "Роль", "Отдел", "Табельный", "id"]
+             "Роль", "Отдел", "Табельный", "id",
+             "Вычеты", "Надбавки"]
         )
         self.ui.salar_table.setSortingEnabled(True)
 
@@ -203,8 +204,8 @@ class SalaryReader(AcrylicWindow):
         if title is None:
             title = "Ошибка"
 
-        msg = QMessageBox(self)
-        msg.setStyleSheet(WARNING_DIALOG_STYLE)
+        msg = QMessageBox(parent=self)
+        #msg.setStyleSheet(WARNING_DIALOG_STYLE)
         msg.setIcon(QMessageBox.Icon.Critical)
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg.setWindowTitle(title)

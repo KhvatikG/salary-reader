@@ -29,6 +29,7 @@ CONFIRM_DIALOG_STYLE = """
 
 WARNING_DIALOG_STYLE = """
                 QMessageBox {
+                background-color: rgba(240, 100, 20, 150);
                 border: 1px solid  rgba(255, 255, 255, 70);
                 border-radius: 7px;
                 color: white;
