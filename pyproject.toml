@@ -5,9 +5,13 @@ description = ""
 authors = ["Garik <khvatik.igor@gmail.com>"]
 readme = "README.md"
 package-mode = false
+packages = [{ include = "salary_reader", from = "src" }]
+
+[tool.poetry.scripts]
+salary-reader = "src.salary_reader.main:run"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.14"
+python = ">=3.13,<3.14"
 requests = "^2.32.3"
 loguru = "^0.7.2"
 sqlalchemy = "^2.0.36"
@@ -16,9 +20,12 @@ python-dotenv = "^1.0.1"
 pywin32 = "^308"
 openpyxl = "^3.1.5"
 reportlab = "^4.3.0"
-pysidesix-frameless-window = "^0.5.1"
 pyside6 = "^6.9.0"
+iiko-api = { git = "https://github.com/KhvatikG/iiko-api.git" }
+pysidesix-frameless-window = "^0.7.1"
 
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^6.0.0"
 
 [build-system]
 requires = ["poetry-core"]

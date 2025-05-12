@@ -6,4 +6,7 @@
 .venv/
 *.env
 
-app/db/sqlite.db
+src/salary_reader/db/sqlite.db
+
+dist
+build
