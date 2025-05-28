@@ -157,7 +157,7 @@ class SalaryReader(AcrylicWindow):
         # Сводная таблица зарплат
         self.ui.date_from.setDate(QDate.currentDate())
         self.ui.date_to.setDate(QDate.currentDate())
-        self.ui.salar_table.setColumnCount(19)
+        self.ui.salar_table.setColumnCount(23)
         self.ui.salar_table.setHorizontalHeaderLabels(
             ["ФИО",
              "Полное имя",
@@ -173,7 +173,13 @@ class SalaryReader(AcrylicWindow):
              "Кол-во оплаченных\nпоездок такси",
              "Сумма оплаченных\nпоездок такси",
              "Роль", "Отдел", "Табельный", "id",
-             "Вычеты", "Надбавки"]
+             "Личные списания",
+             "Ревизия",
+             "Форма",
+             "Кофе",
+             "Авансы",
+             "Надбавки",
+             ]
         )
         self.ui.salar_table.setSortingEnabled(True)
 
@@ -687,7 +693,7 @@ class SalaryReader(AcrylicWindow):
 
         wb.save("salary_table.xlsx")
 
-        os.startfile("../../salary_table.xlsx")
+        os.startfile("./salary_table.xlsx")
 
     def payslip_report_callback(self):
         """

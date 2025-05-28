@@ -493,11 +493,11 @@ class AttendancesDataDriver:
             rows = self.get_general_table_rows()
         except Exception as err:
             logger.exception(f"Произошла ошибка при получении данных для сводной таблицы:\n{err}")
-            raise err
+            raise
 
         self.general_table.setRowCount(0)
         self.general_table.setRowCount(len(rows))
-        self.general_table.setColumnCount(19)
+        self.general_table.setColumnCount(23)
 
         for row_index, row_data in enumerate(rows):
 
@@ -520,6 +520,10 @@ class AttendancesDataDriver:
             self.general_table.setItem(row_index, 16, QTableWidgetItem(str(row_data['id'])))
             self.general_table.setItem(row_index, 17, QTableWidgetItem('0'))
             self.general_table.setItem(row_index, 18, QTableWidgetItem('0'))
+            self.general_table.setItem(row_index, 19, QTableWidgetItem('0'))
+            self.general_table.setItem(row_index, 20, QTableWidgetItem('0'))
+            self.general_table.setItem(row_index, 21, QTableWidgetItem('0'))
+            self.general_table.setItem(row_index, 22, QTableWidgetItem('0'))
 
             if row_data['warnings']:  # Если есть предупреждение
                 for col_index in range(self.general_table.columnCount()):

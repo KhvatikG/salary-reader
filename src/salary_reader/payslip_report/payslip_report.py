@@ -39,7 +39,7 @@ class ReportGenerator:
                             year,
                             month,
                             month_rows,
-                            deduction,
+                            deduction: dict,
                             bonus,
                             date_from=None,
                             date_to=None
@@ -145,10 +145,17 @@ class ReportGenerator:
             '-', str(full_days), str(partial_days), str(salary_sum)
         ])
         table_data.append([
-            '-', 'Надбавки', 'Вычеты', 'Итог'
+            'Личные', 'Ревизия', 'Форма', 'Кофе', 'Авансы'
         ])
         table_data.append([
-            '-', bonus, deduction, (salary_sum - int(deduction) + int(bonus))
+            deduction["self"], deduction["revision"], deduction["form"], deduction["coffee"], deduction["advances"]
+        ])
+        table_data.append([
+            '-', 'Надбавки', 'Вычеты', 'Итог'
+        ])
+        deductions_sum = sum(list(map(int, deduction.values())))
+        table_data.append([
+            '-', bonus, deductions_sum, (salary_sum - int(deductions_sum) + int(bonus))
         ])
 
         return table_data
@@ -172,7 +179,7 @@ class ReportGenerator:
         for emp_id in employee_ids:
             emp_add_data = additional_info.get(emp_id, {}) if additional_info else {}
             logger.warning(f"Инфо о сотруднике {emp_id}:\n{emp_add_data}")
-            deduction = emp_add_data.get('deduction', 0)
+            deduction = emp_add_data.get('deduction')
             bonus = emp_add_data.get('bonus', 0)
             logger.warning(f"Вычеты {deduction=} {bonus=}")
             name = get_employee_name_by_id(emp_id)
@@ -198,24 +205,22 @@ class ReportGenerator:
 
         # Позиции на странице для таблиц
         positions = [
-            (1 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
-            (71 * mm, A4[1] - 10 * mm - table_height),  # Верх-центр
-            (141 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
-            (1 * mm, A4[1] - 155 * mm - table_height),  # Низ-лево
-            (71 * mm, A4[1] - 155 * mm - table_height),  # Низ-центр
-            (141 * mm, A4[1] - 155 * mm - table_height)  # Низ-право
+            (25 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
+            (115 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
+            (25 * mm, A4[1] - 155 * mm - table_height),  # Низ-лево
+            (115 * mm, A4[1] - 155 * mm - table_height)  # Низ-право
         ]
 
         first_page = True
-        for i in range(0, len(all_tables), 6):
+        for i in range(0, len(all_tables), 4):
             if not first_page:
                 c.showPage()
             else:
                 first_page = False
 
-            page_tables = all_tables[i:i + 6]
+            page_tables = all_tables[i:i + 4]
 
-            logger.debug(f"Формируем страницу {i // 6 + 1} из {len(all_tables) // 6}")
+            logger.debug(f"Формируем страницу {i // 4 + 1} из {len(all_tables) // 4}")
             for idx, table_data in enumerate(page_tables):
                 logger.debug(f"Формируем таблицу {idx + 1} из {len(page_tables)}")
                 t = Table(
@@ -237,6 +242,7 @@ class ReportGenerator:
                     ('BACKGROUND', (0, 1), (-1, 1), colors.lightgrey),
                     ('BACKGROUND', (0, -2), (-1, -2), colors.lightgrey),
                     ('BACKGROUND', (0, -4), (-1, -4), colors.lightgrey),
+                    ('BACKGROUND', (0, -6), (-1, -6), colors.lightgrey),
                     ('LEADING', (0, 0), (-1, -1), 7),
                     ('TOPPADDING', (0, 0), (-1, -1), 0.5 * mm),
                     ('BOTTOMPADDING', (0, 0), (-1, -1), 0.5 * mm),
@@ -269,9 +275,16 @@ class ReportGenerator:
             employee_ids = []
             add_info = {}
             for row_num in range(self.parent.general_table.rowCount()):
+                deduction = dict()
+
                 employee_id = self.parent.general_table.item(row_num, 16).text()
-                deduction = self.parent.general_table.item(row_num, 17).text()
-                bonus = self.parent.general_table.item(row_num, 18).text()
+                deduction["self"] = self.parent.general_table.item(row_num, 17).text()
+                deduction["revision"] = self.parent.general_table.item(row_num, 18).text()
+                deduction["form"] = self.parent.general_table.item(row_num, 19).text()
+                deduction["coffee"] = self.parent.general_table.item(row_num, 20).text()
+                deduction["advances"] = self.parent.general_table.item(row_num, 21).text()
+
+                bonus = self.parent.general_table.item(row_num, 22).text()
                 add_info[employee_id] = {"deduction": deduction, "bonus": bonus}
                 logger.info(f"Добавляем {employee_id} {deduction} {bonus}")
                 employee_ids.append(employee_id)
