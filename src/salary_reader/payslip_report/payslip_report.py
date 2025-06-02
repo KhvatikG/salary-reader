@@ -176,6 +176,8 @@ class ReportGenerator:
         :return:
         """
         all_tables = []
+        count_period_days = (date_to - date_from).days
+
         for emp_id in employee_ids:
             emp_add_data = additional_info.get(emp_id, {}) if additional_info else {}
             logger.warning(f"Инфо о сотруднике {emp_id}:\n{emp_add_data}")
@@ -203,30 +205,40 @@ class ReportGenerator:
         table_width = 70 * mm
         table_height = 140 * mm
 
-        # Позиции на странице для таблиц
-        positions = [
-            (25 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
-            (115 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
-            (25 * mm, A4[1] - 155 * mm - table_height),  # Низ-лево
-            (115 * mm, A4[1] - 155 * mm - table_height)  # Низ-право
-        ]
-
         first_page = True
-        for i in range(0, len(all_tables), 4):
+
+        if count_period_days >= 28:
+            count_tables = 2
+            # Позиции на странице для таблиц
+            positions = [
+                (25 * mm, A4[1] - 25 * mm - table_height),  # Верх-лево
+                (115 * mm, A4[1] - 25 * mm - table_height),  # Верх-право
+            ]
+        else:
+            count_tables = 4
+            # Позиции на странице для таблиц
+            positions = [
+                (25 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
+                (115 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
+                (25 * mm, A4[1] - 155 * mm - table_height),  # Низ-лево
+                (115 * mm, A4[1] - 155 * mm - table_height)  # Низ-право
+            ]
+
+        for i in range(0, len(all_tables), count_tables):
             if not first_page:
                 c.showPage()
             else:
                 first_page = False
 
-            page_tables = all_tables[i:i + 4]
+            page_tables = all_tables[i:i + count_tables]
 
-            logger.debug(f"Формируем страницу {i // 4 + 1} из {len(all_tables) // 4}")
+            logger.debug(f"Формируем страницу {i // count_tables + 1} из {len(all_tables) // count_tables}")
             for idx, table_data in enumerate(page_tables):
                 logger.debug(f"Формируем таблицу {idx + 1} из {len(page_tables)}")
                 t = Table(
                     table_data,
                     colWidths=[14 * mm, 25 * mm, 15 * mm, 9 * mm],
-                    # Первая строка – высота 8 мм, остальные – по 5 мм
+                    # Первая строка – высота 8 мм, остальные – по 4 мм
                     rowHeights=[8 * mm] + [4 * mm] * (len(table_data) - 1)
                 )
                 style = TableStyle([
@@ -276,7 +288,6 @@ class ReportGenerator:
             add_info = {}
             for row_num in range(self.parent.general_table.rowCount()):
                 deduction = dict()
-
                 employee_id = self.parent.general_table.item(row_num, 16).text()
                 deduction["self"] = self.parent.general_table.item(row_num, 17).text()
                 deduction["revision"] = self.parent.general_table.item(row_num, 18).text()
