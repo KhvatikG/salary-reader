@@ -85,7 +85,7 @@ class Attendance:
                 f"Время окончания явки сотрудника {employee_id} на {date_to.strftime('%d.%m.%Y')} меньше 22:00.")
             self.date_to = date_to
 
-        if date_from.hour < 10 or (date_from.hour == 10 and date_from.minute < 20):
+        if date_from.hour < 10 or (date_from.hour == 10 and date_from.minute < 30):
             logger.warning(
                 f"Время явки сотрудника {employee_id} на {date_from.strftime('%d.%m.%Y')} меньше 10:00."
                 f"Устанавливаем 10 часов."
