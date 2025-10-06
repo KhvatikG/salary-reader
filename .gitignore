@@ -8,5 +8,14 @@
 
 src/salary_reader/db/sqlite.db
 
+# Data directory
+data/
+
 dist
 build
+
+__pycache__
+
+*.db
+
+shtraf.png

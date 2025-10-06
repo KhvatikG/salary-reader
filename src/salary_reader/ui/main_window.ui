@@ -640,6 +640,22 @@ color: white;</string>
          </attribute>
         </widget>
        </item>
+       <item>
+        <widget class="QLabel" name="version_label">
+         <property name="styleSheet">
+          <string notr="true">color: rgba(255, 255, 255, 120);
+font-size: 8pt;
+background-color: none;
+border: none;</string>
+         </property>
+         <property name="text">
+          <string>v2.2.0</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignBottom</set>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

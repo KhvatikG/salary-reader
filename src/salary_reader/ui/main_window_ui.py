@@ -422,6 +422,16 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.salar_table)
 
+        self.version_label = QLabel(self.main_frame)
+        self.version_label.setObjectName(u"version_label")
+        self.version_label.setStyleSheet(u"color: rgba(255, 255, 255, 120);\n"
+"font-size: 8pt;\n"
+"background-color: none;\n"
+"border: none;")
+        self.version_label.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignBottom)
+
+        self.verticalLayout.addWidget(self.version_label)
+
 
         self.verticalLayout_2.addWidget(self.main_frame)
 
@@ -457,5 +467,6 @@ class Ui_MainWindow(object):
         self.refresh_salary.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c", None))
         self.button_payslip_report.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0447\u0430\u0442\u044c \u0432\u0435\u0434\u043e\u043c\u043e\u0441\u0442\u0435\u0439", None))
         self.get_full_salary_blanc.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0432\u0435\u0440\u043a\u0430 \u0433\u0440\u0430\u0444\u0438\u043a\u0430", None))
+        self.version_label.setText(QCoreApplication.translate("MainWindow", u"v2.2.0", None))
     # retranslateUi
 

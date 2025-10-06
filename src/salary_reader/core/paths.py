@@ -22,8 +22,10 @@ def get_db_path():
         app_dir = Path(sys.executable).parent
         return app_dir / 'salary_reader.db'
     else:
-        # Для разработки - сохраняем в пользовательской директории
-        app_data = Path.home() / 'AppData' / 'Local' / 'SalaryReader'
+        # Для разработки - сохраняем в папке проекта
+        project_root = Path(__file__).parent.parent.parent.parent  # -> корень проекта
+        app_data = project_root / 'data'
+        app_data.mkdir(exist_ok=True)  # Создаем папку data если её нет
         return app_data / 'salary_reader.db'
 
 def get_resource_path(relative_path):

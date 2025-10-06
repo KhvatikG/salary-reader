@@ -29,6 +29,7 @@ from salary_reader.helpers.helpers import get_icon_from_svg, set_departments, ge
 from salary_reader.db import get_session
 from salary_reader.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 from salary_reader.iiko_business_api.employees import update_employees_from_api
+from salary_reader.core.version import get_version_info
 
 with get_session() as session:
     EMPLOYEES_INIT = session.query(Employee).all()
@@ -84,10 +85,14 @@ class SalaryReader(AcrylicWindow):
         # Включить стандартный TitleBar с кнопками
         self.setTitleBar(StandardTitleBar(self.main_widget))
         self.setWindowIcon(QIcon(resource_path("resources/images/export-icon.png")))
-        self.setWindowTitle("Kult Salary Reader")
+        version_info = get_version_info()
+        self.setWindowTitle(f"Kult Salary Reader {version_info['version']}")
         # Устанавливаем стиль для заголовка окна и цвет текста заголовка
         self.titleBar.setStyleSheet("font-size: 14px; font-weight: bold; color: white;")
         self.titleBar.raise_()
+
+        # Устанавливаем версию приложения в UI
+        self.ui.version_label.setText(f"v{version_info['version']}")
 
         self.DEBUG = False
         self.ui.salar_table.setStyleSheet(GTS_TABLE_STYLE)
