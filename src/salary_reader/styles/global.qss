@@ -1,0 +1,45 @@
+/* === Глобальный фон и шрифты === */
+* {
+    font-family: "Segoe UI";
+    color: white;
+}
+
+/* Прозрачные контейнеры */
+QMainWindow, QWidget {
+    background: transparent;
+}
+
+/* Общий стиль панелей, таблиц, списков */
+QTableWidget, QFrame, QListWidget, QLineEdit, QComboBox, QPushButton {
+    background-color: rgba(255, 255, 255, 30);
+    border: 1px solid rgba(255, 255, 255, 40);
+    border-radius: 7px;
+}
+
+/* Секции заголовков таблиц */
+QHeaderView, QHeaderView::section {
+    background-color: rgba(255, 255, 255, 28);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 40);
+    padding: 6px;
+}
+QHeaderView::section:horizontal:first { border-top-left-radius: 7px; }
+QHeaderView::section:horizontal:last  { border-top-right-radius: 7px; }
+
+/* Выделение */
+QTableWidget::item:selected {
+    background-color: rgba(255, 255, 255, 120);
+    font-weight: bold;
+    color: white;
+}
+
+/* Скроллбары */
+QScrollBar:vertical, QScrollBar:horizontal {
+    background: transparent;
+    width: 8px;
+    margin: 2px;
+}
+QScrollBar::handle {
+    background: rgba(255, 255, 255, 70);
+    border-radius: 4px;
+}

@@ -1,0 +1,723 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1105</width>
+    <height>630</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>SalaryReader</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+background-color: qlineargradient(spread:pad, x1:1, y1:1, x2:0, y2:0, stop:0 rgba(81, 0, 135, 255), stop:0.427447 rgba(41, 61, 132, 235), stop:1 rgba(155, 79, 165, 255));
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <property name="styleSheet">
+    <string notr="true"/>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="topMargin">
+     <number>32</number>
+    </property>
+    <item>
+     <widget class="QComboBox" name="department">
+      <property name="styleSheet">
+       <string notr="true">QComboBox { 
+background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;
+color: white;
+font-weight: bold;
+font-size: 16pt;
+}
+
+QComboBox:item {
+background-color: rgba(255, 255, 255, 70);
+color: white;
+}</string>
+      </property>
+      <item>
+       <property name="text">
+        <string>GONZO</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Культ Еды</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>КРУГ</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="main_frame">
+      <property name="styleSheet">
+       <string notr="true">background-color: none;</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QWidget" name="roles_settings" native="true">
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(255, 255, 255, 0);
+border: 1px solid  rgba(255, 255, 255, 70);
+border-radius: 7px;
+color: white;</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0">
+          <property name="sizeConstraint">
+           <enum>QLayout::SizeConstraint::SetNoConstraint</enum>
+          </property>
+          <item>
+           <widget class="QFrame" name="roles_frame">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;</string>
+            </property>
+            <layout class="QVBoxLayout" name="roles_layout">
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="roles_label">
+               <property name="styleSheet">
+                <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+               </property>
+               <property name="text">
+                <string>Программы мотивации:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QListWidget" name="roles_list">
+               <property name="contextMenuPolicy">
+                <enum>Qt::ContextMenuPolicy::DefaultContextMenu</enum>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">background-color: rgba(255, 255, 255, 0)</string>
+               </property>
+               <property name="defaultDropAction">
+                <enum>Qt::DropAction::MoveAction</enum>
+               </property>
+               <property name="movement">
+                <enum>QListView::Movement::Free</enum>
+               </property>
+               <property name="currentRow">
+                <number>-1</number>
+               </property>
+               <property name="sortingEnabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_2">
+               <item>
+                <widget class="QLineEdit" name="roles_add_line"/>
+               </item>
+               <item>
+                <widget class="QPushButton" name="roles_add_button">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Добавить</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="RolesButtons">
+               <item>
+                <widget class="QPushButton" name="roles_edit">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Редактировать</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="roles_delete">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Удалить</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="settings_frame">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;</string>
+            </property>
+            <layout class="QVBoxLayout" name="MainSettings">
+             <property name="leftMargin">
+              <number>9</number>
+             </property>
+             <property name="topMargin">
+              <number>9</number>
+             </property>
+             <property name="rightMargin">
+              <number>9</number>
+             </property>
+             <property name="bottomMargin">
+              <number>9</number>
+             </property>
+             <item>
+              <widget class="QLabel" name="label_motivate_settings">
+               <property name="styleSheet">
+                <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+               </property>
+               <property name="text">
+                <string>Настройка вознагрождений для выбранной программы:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTableWidget" name="table_motivate_settings">
+               <property name="font">
+                <font>
+                 <italic>false</italic>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="layoutDirection">
+                <enum>Qt::LayoutDirection::LeftToRight</enum>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    };
+
+QHeaderView::section {
+        padding: 3px;  
+    }</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::Shape::StyledPanel</enum>
+               </property>
+               <property name="sortingEnabled">
+                <bool>true</bool>
+               </property>
+               <property name="rowCount">
+                <number>0</number>
+               </property>
+               <attribute name="horizontalHeaderCascadingSectionResizes">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="horizontalHeaderMinimumSectionSize">
+                <number>170</number>
+               </attribute>
+               <attribute name="horizontalHeaderDefaultSectionSize">
+                <number>170</number>
+               </attribute>
+               <attribute name="horizontalHeaderHighlightSections">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="verticalHeaderVisible">
+                <bool>false</bool>
+               </attribute>
+               <attribute name="verticalHeaderCascadingSectionResizes">
+                <bool>false</bool>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="SettingsButtons" stretch="3,3,20,10,10">
+               <item>
+                <widget class="QPushButton" name="button_add_threshhold">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>+</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="button_delete_threshold">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>-</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="button_settings_save">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Сохранить</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="button_settings_cancel">
+                 <property name="styleSheet">
+                  <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+                 </property>
+                 <property name="text">
+                  <string>Отменить</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QFrame" name="employees">
+            <property name="styleSheet">
+             <string notr="true">background-color: rgba(255, 255, 255, 30);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 7px;</string>
+            </property>
+            <layout class="QVBoxLayout" name="employees_layout">
+             <item>
+              <widget class="QLabel" name="employees_label">
+               <property name="styleSheet">
+                <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+               </property>
+               <property name="text">
+                <string>Сотрудники в выбранной программе:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QTableWidget" name="employees_table">
+               <property name="styleSheet">
+                <string notr="true">QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    }
+    QHeaderView::section {
+        padding: 3px;  
+    }</string>
+               </property>
+               <property name="sortingEnabled">
+                <bool>true</bool>
+               </property>
+               <attribute name="horizontalHeaderCascadingSectionResizes">
+                <bool>false</bool>
+               </attribute>
+               <attribute name="horizontalHeaderMinimumSectionSize">
+                <number>50</number>
+               </attribute>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
+               </attribute>
+               <attribute name="verticalHeaderVisible">
+                <bool>false</bool>
+               </attribute>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="button_employees_edit">
+               <property name="styleSheet">
+                <string notr="true">QPushButton:hover {
+background-color: rgba(255, 255, 255, 40)
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70)
+}</string>
+               </property>
+               <property name="text">
+                <string>Редактировать</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="salary_panel">
+         <property name="styleSheet">
+          <string notr="true">background-color:  none;</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_3" stretch="1,5,1,5,5,5,5">
+          <item>
+           <widget class="QLabel" name="label">
+            <property name="layoutDirection">
+             <enum>Qt::LayoutDirection::LeftToRight</enum>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+            </property>
+            <property name="text">
+             <string>От:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateEdit" name="date_from">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="wrapping">
+             <bool>false</bool>
+            </property>
+            <property name="showGroupSeparator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="dateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2024</year>
+              <month>10</month>
+              <day>27</day>
+             </datetime>
+            </property>
+            <property name="time">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="minimumDate">
+             <date>
+              <year>2020</year>
+              <month>1</month>
+              <day>1</day>
+             </date>
+            </property>
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="styleSheet">
+             <string notr="true">color: white;
+font-weight: bold;
+font-size: 11pt;
+background-color: none;
+border: none;</string>
+            </property>
+            <property name="text">
+             <string>До:</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QDateEdit" name="date_to">
+            <property name="styleSheet">
+             <string notr="true"/>
+            </property>
+            <property name="dateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2024</year>
+              <month>11</month>
+              <day>10</day>
+             </datetime>
+            </property>
+            <property name="time">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="minimumDateTime">
+             <datetime>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+              <year>2020</year>
+              <month>1</month>
+              <day>1</day>
+             </datetime>
+            </property>
+            <property name="minimumDate">
+             <date>
+              <year>2020</year>
+              <month>1</month>
+              <day>1</day>
+             </date>
+            </property>
+            <property name="minimumTime">
+             <time>
+              <hour>0</hour>
+              <minute>0</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="calendarPopup">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="refresh_salary">
+            <property name="text">
+             <string>Обновить</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="button_payslip_report">
+            <property name="text">
+             <string>Печать ведомостей</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="get_full_salary_blanc">
+            <property name="text">
+             <string>Сверка графика</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+         <zorder>date_from</zorder>
+         <zorder>label_2</zorder>
+         <zorder>date_to</zorder>
+         <zorder>refresh_salary</zorder>
+         <zorder>button_payslip_report</zorder>
+         <zorder>get_full_salary_blanc</zorder>
+         <zorder>label</zorder>
+        </widget>
+       </item>
+       <item>
+        <widget class="QTableWidget" name="salar_table">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">background-color: rgba(255, 255, 255, 30);
+border-radius: 7px;
+
+QTableWidget {
+        gridline-color: rgba(255, 255, 255, 70);
+    };
+
+QHeaderView::section {
+        padding: 3px;  
+    };
+
+color: white;</string>
+         </property>
+         <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="horizontalHeaderStretchLastSection">
+          <bool>true</bool>
+         </attribute>
+         <attribute name="verticalHeaderVisible">
+          <bool>false</bool>
+         </attribute>
+        </widget>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="bottom_layout">
+         <item>
+          <spacer name="horizontalSpacer_bottom">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="check_updates_button">
+           <property name="minimumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>30</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton {
+background-color: rgba(255, 255, 255, 20);
+border: 1px solid rgba(255, 255, 255, 40);
+border-radius: 15px;
+color: white;
+font-size: 12pt;
+}
+
+QPushButton:hover {
+background-color: rgba(255, 255, 255, 40);
+}
+
+QPushButton:pressed {
+background-color: rgba(255, 255, 255, 70);
+}</string>
+           </property>
+           <property name="toolTip">
+            <string>Проверить обновления</string>
+           </property>
+           <property name="text">
+            <string>⟲</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="version_label">
+           <property name="styleSheet">
+            <string notr="true">color: rgba(255, 255, 255, 120);
+font-size: 8pt;
+background-color: none;
+border: none;</string>
+           </property>
+           <property name="text">
+            <string>v2.2.0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignBottom</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
