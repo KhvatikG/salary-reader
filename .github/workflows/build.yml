@@ -18,26 +18,15 @@ jobs:
       with:
         python-version: '3.13'
         
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-        
-    - name: Configure Poetry
-      run: |
-        poetry config virtualenvs.in-project true
-        poetry config virtualenvs.create true
-        
     - name: Install dependencies
       run: |
-        poetry install --no-dev
-        poetry add --group dev pyinstaller
+        python -m pip install --upgrade pip
+        pip install requests loguru sqlalchemy xmltodict python-dotenv pywin32 openpyxl reportlab pyside6 pysidesix-frameless-window packaging
+        pip install pyinstaller
       
     - name: Build executable
       run: |
-        poetry run pyinstaller --onefile --windowed --name SalaryReader --icon=src/salary_reader/resources/images/export-icon.png src/salary_reader/main.py
+        pyinstaller --onefile --windowed --name SalaryReader --icon=src/salary_reader/resources/images/export-icon.png src/salary_reader/main.py
         
     - name: Create release
       uses: softprops/action-gh-release@v1
