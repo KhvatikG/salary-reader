@@ -736,10 +736,10 @@ class SalaryReader(AcrylicWindow):
                 msg.setText(f"Доступна новая версия: {update_info['version']}\n\n"
                            f"Текущая версия: {self.updater.current_version}\n\n"
                            f"Хотите скачать и установить обновление?")
-                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-                msg.setDefaultButton(QMessageBox.Yes)
+                msg.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+                msg.setDefaultButton(QMessageBox.StandardButton.Yes)
                 
-                if msg.exec() == QMessageBox.Yes:
+                if msg.exec() == QMessageBox.StandardButton.Yes:
                     self.download_and_install_update(update_info)
             else:
                 # Показываем сообщение что обновлений нет
@@ -760,7 +760,7 @@ class SalaryReader(AcrylicWindow):
             
             # Создаем диалог прогресса
             progress = QProgressDialog("Скачивание обновления...", "Отмена", 0, 100, self)
-            progress.setWindowModality(2)  # Qt.WindowModal
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.show()
             
             def progress_callback(percent):
