@@ -20,7 +20,19 @@ def get_logger(name: str, level: str = "INFO", filepath: str = None, **kwargs) -
     new_logger = logger.bind(name=name)
     new_logger.remove() # Удаляем дефолтный логгер
 
-    new_logger.add(sink=filepath if filepath else sys.stdout, level=level, **kwargs)
+    if filepath:
+        new_logger.add(sink=filepath, level=level, **kwargs)
+    else:
+        # В собранном exe файле sys.stdout может быть недоступен
+        try:
+            new_logger.add(sink=sys.stdout, level=level, **kwargs)
+        except:
+            # Если sys.stdout недоступен, используем stderr или файл
+            try:
+                new_logger.add(sink=sys.stderr, level=level, **kwargs)
+            except:
+                # Последний резерв - файл в текущей директории
+                new_logger.add(sink="app.log", level=level, **kwargs)
     return new_logger
 
 
