@@ -18,37 +18,40 @@ jobs:
       with:
         python-version: '3.13'
         
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-        
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v3
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-        
     - name: Install dependencies
-      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-dev
-      
-    - name: Install PyInstaller
-      run: poetry add --group dev pyinstaller
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests loguru sqlalchemy xmltodict python-dotenv pywin32 openpyxl reportlab pyside6 pysidesix-frameless-window packaging
+        pip install git+https://github.com/KhvatikG/iiko-api.git
+        pip install pyinstaller
       
     - name: Build executable
       run: |
-        poetry run pyinstaller --onefile --windowed --name SalaryReader --icon=src/salary_reader/resources/images/export-icon.png src/salary_reader/main.py
+        pyinstaller --onefile --windowed --name SalaryReader --icon=src/salary_reader/resources/images/export-icon.png src/salary_reader/main.py
         
     - name: Create release
-      uses: softprops/action-gh-release@v1
-      with:
-        files: dist/SalaryReader.exe
-        generate_release_notes: true
-        draft: false
-        prerelease: false
+      id: create_release
+      uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        release_name: Release ${{ github.ref_name }}
+        body: |
+          Автоматически собранный релиз ${{ github.ref_name }}
+          
+          ## Изменения
+          - Обновления приложения
+          - Исправления ошибок
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/SalaryReader.exe
+        asset_name: SalaryReader.exe
+        asset_content_type: application/octet-stream
