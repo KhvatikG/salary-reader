@@ -64,5 +64,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='src/salary_reader/resources/images/export-icon.png'
+    icon='src/salary_reader/resources/images/export-icon.ico'
 )
