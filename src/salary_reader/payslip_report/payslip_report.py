@@ -203,25 +203,29 @@ class ReportGenerator:
 
         # Размеры таблицы
         table_width = 70 * mm
-        table_height = 140 * mm
+        table_height = (4 * (10 + count_period_days )) * mm
 
         first_page = True
-
+        # ПРИ ДОБАВЛЕНИИ НОВЫХ СТРОК В ТАБЛИЦУ ЭТО ЧИСЛО СТОИТ УМЕНЬШИТЬ
         if count_period_days >= 28:
-            count_tables = 2
+            count_tables = 3
             # Позиции на странице для таблиц
             positions = [
-                (25 * mm, A4[1] - 25 * mm - table_height),  # Верх-лево
-                (115 * mm, A4[1] - 25 * mm - table_height),  # Верх-право
+                (1 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
+                (71 * mm, A4[1] - 10 * mm - table_height),
+                (141 * mm, A4[1] - 10 * mm - table_height),
+                  # Верх-право
             ]
         else:
-            count_tables = 4
+            count_tables = 6
             # Позиции на странице для таблиц
             positions = [
-                (25 * mm, A4[1] - 10 * mm - table_height),  # Верх-лево
-                (115 * mm, A4[1] - 10 * mm - table_height),  # Верх-право
-                (25 * mm, A4[1] - 155 * mm - table_height),  # Низ-лево
-                (115 * mm, A4[1] - 155 * mm - table_height)  # Низ-право
+                (1 * mm, A4[1] - 1 * mm - table_height),  # Верх-лево
+                (71 * mm, A4[1] - 1 * mm - table_height),  # Верх-центр
+                (141 * mm, A4[1] - 1 * mm - table_height),  # Верх-право
+                (1 * mm, A4[1] - 148 * mm - table_height),  # Низ-лево
+                (71 * mm, A4[1] - 148 * mm - table_height),  # Низ-центр
+                (141 * mm, A4[1] - 148 * mm - table_height)  # Низ-право
             ]
 
         for i in range(0, len(all_tables), count_tables):
@@ -237,7 +241,7 @@ class ReportGenerator:
                 logger.debug(f"Формируем таблицу {idx + 1} из {len(page_tables)}")
                 t = Table(
                     table_data,
-                    colWidths=[14 * mm, 25 * mm, 15 * mm, 9 * mm],
+                    colWidths=[14 * mm, 20 * mm, 15 * mm, 9 * mm],
                     # Первая строка – высота 8 мм, остальные – по 4 мм
                     rowHeights=[8 * mm] + [4 * mm] * (len(table_data) - 1)
                 )

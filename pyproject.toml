@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "salary-reader"
-version = "2.3.1"
+version = "2.3.2"
 description = ""
 authors = ["Garik <khvatik.igor@gmail.com>"]
 readme = "README.md"
