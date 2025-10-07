@@ -11,6 +11,10 @@ logger = get_logger(__name__, level="DEBUG")
 
 def update_employees_from_api(session: Session):
     try:
+        if iiko_api is None:
+            logger.warning("iiko_api не инициализирован, пропускаем обновление сотрудников")
+            return
+            
         logger.info(f"Обновление сотрудников...")
 
         existing_employees: list[Type[Employee]] = (

@@ -24,7 +24,13 @@ a = Analysis(
         ('src/salary_reader/resources/fonts/*', 'resources/fonts'),
         ('src/salary_reader/resources/images/*', 'resources/images')
     ],
-    hiddenimports=[],
+    hiddenimports=[
+        'iiko_api',
+        'iiko_api.core',
+        'iiko_api.endpoints',
+        'iiko_api.models',
+        'iiko_api.services',
+    ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
