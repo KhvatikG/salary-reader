@@ -30,6 +30,7 @@ from salary_reader.db import get_session
 from salary_reader.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 from salary_reader.iiko_business_api.employees import update_employees_from_api
 from salary_reader.core.version import get_version_info
+from salary_reader.core.updater import Updater
 
 with get_session() as session:
     EMPLOYEES_INIT = session.query(Employee).all()
@@ -93,6 +94,12 @@ class SalaryReader(AcrylicWindow):
 
         # Устанавливаем версию приложения в UI
         self.ui.version_label.setText(f"v{version_info['version']}")
+
+        # Инициализируем updater
+        self.updater = Updater()
+        
+        # Подключаем кнопку обновлений
+        self.ui.check_updates_button.clicked.connect(self.check_updates)
 
         self.DEBUG = False
         self.ui.salar_table.setStyleSheet(GTS_TABLE_STYLE)
@@ -715,11 +722,103 @@ class SalaryReader(AcrylicWindow):
         except Exception as e:
             self.show_error_message(f"Ошибка при создании отчета: Непредвиденная ошибка: {e}")
 
+    def check_updates(self):
+        """Проверяет наличие обновлений"""
+        try:
+            update_info = self.updater.check_for_updates()
+            
+            if update_info:
+                # Показываем диалог с информацией об обновлении
+                from PySide6.QtWidgets import QMessageBox, QProgressDialog
+                
+                msg = QMessageBox(self)
+                msg.setWindowTitle("Доступно обновление")
+                msg.setText(f"Доступна новая версия: {update_info['version']}\n\n"
+                           f"Текущая версия: {self.updater.current_version}\n\n"
+                           f"Хотите скачать и установить обновление?")
+                msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                msg.setDefaultButton(QMessageBox.Yes)
+                
+                if msg.exec() == QMessageBox.Yes:
+                    self.download_and_install_update(update_info)
+            else:
+                # Показываем сообщение что обновлений нет
+                from PySide6.QtWidgets import QMessageBox
+                msg = QMessageBox(self)
+                msg.setWindowTitle("Проверка обновлений")
+                msg.setText("У вас установлена последняя версия приложения.")
+                msg.exec()
+                
+        except Exception as e:
+            self.show_error_message(f"Ошибка при проверке обновлений: {e}")
+
+    def download_and_install_update(self, update_info):
+        """Скачивает и устанавливает обновление"""
+        try:
+            from PySide6.QtWidgets import QProgressDialog, QMessageBox
+            from PySide6.QtCore import QThread, pyqtSignal
+            
+            # Создаем диалог прогресса
+            progress = QProgressDialog("Скачивание обновления...", "Отмена", 0, 100, self)
+            progress.setWindowModality(2)  # Qt.WindowModal
+            progress.show()
+            
+            def progress_callback(percent):
+                progress.setValue(percent)
+                QApplication.processEvents()
+            
+            # Скачиваем обновление
+            if self.updater.download_update(update_info['download_url'], progress_callback):
+                progress.close()
+                
+                # Устанавливаем обновление
+                if self.updater.install_update():
+                    # Показываем сообщение об успешной установке
+                    msg = QMessageBox(self)
+                    msg.setWindowTitle("Обновление установлено")
+                    msg.setText("Обновление успешно установлено. Приложение будет перезапущено.")
+                    msg.exec()
+                    
+                    # Перезапускаем приложение
+                    import subprocess
+                    subprocess.Popen([sys.executable] + sys.argv[1:])
+                    sys.exit(0)
+                else:
+                    self.show_error_message("Ошибка при установке обновления")
+            else:
+                progress.close()
+                self.show_error_message("Ошибка при скачивании обновления")
+                
+        except Exception as e:
+            self.show_error_message(f"Ошибка при обновлении: {e}")
+
+    def auto_check_updates(self):
+        """Автоматическая проверка обновлений при запуске"""
+        try:
+            # Проверяем обновления в фоновом режиме
+            update_info = self.updater.check_for_updates()
+            
+            if update_info:
+                # Показываем уведомление о доступном обновлении
+                from PySide6.QtWidgets import QSystemTrayIcon, QMenu
+                from PySide6.QtCore import QTimer
+                
+                # Простое уведомление в консоли для начала
+                print(f"Доступно обновление: {update_info['version']}")
+                print("Нажмите кнопку обновления для установки")
+                
+        except Exception as e:
+            print(f"Ошибка при автоматической проверке обновлений: {e}")
+
 
 def run():
     app = QApplication(sys.argv)
     window = SalaryReader()
     window.show()
+    
+    # Автоматическая проверка обновлений при запуске
+    window.auto_check_updates()
+    
     sys.exit(app.exec())
 
 

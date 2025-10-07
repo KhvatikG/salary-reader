@@ -422,6 +422,34 @@ class Ui_MainWindow(object):
 
         self.verticalLayout.addWidget(self.salar_table)
 
+        self.bottom_layout = QHBoxLayout()
+        self.bottom_layout.setObjectName(u"bottom_layout")
+        self.horizontalSpacer_bottom = QSpacerItem(40, 20, QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+
+        self.bottom_layout.addItem(self.horizontalSpacer_bottom)
+
+        self.check_updates_button = QPushButton(self.main_frame)
+        self.check_updates_button.setObjectName(u"check_updates_button")
+        self.check_updates_button.setMinimumSize(QSize(30, 30))
+        self.check_updates_button.setMaximumSize(QSize(30, 30))
+        self.check_updates_button.setStyleSheet(u"QPushButton {\n"
+"background-color: rgba(255, 255, 255, 20);\n"
+"border: 1px solid rgba(255, 255, 255, 40);\n"
+"border-radius: 15px;\n"
+"color: white;\n"
+"font-size: 12pt;\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"background-color: rgba(255, 255, 255, 40);\n"
+"}\n"
+"\n"
+"QPushButton:pressed {\n"
+"background-color: rgba(255, 255, 255, 70);\n"
+"}")
+
+        self.bottom_layout.addWidget(self.check_updates_button)
+
         self.version_label = QLabel(self.main_frame)
         self.version_label.setObjectName(u"version_label")
         self.version_label.setStyleSheet(u"color: rgba(255, 255, 255, 120);\n"
@@ -430,7 +458,10 @@ class Ui_MainWindow(object):
 "border: none;")
         self.version_label.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignBottom)
 
-        self.verticalLayout.addWidget(self.version_label)
+        self.bottom_layout.addWidget(self.version_label)
+
+
+        self.verticalLayout.addLayout(self.bottom_layout)
 
 
         self.verticalLayout_2.addWidget(self.main_frame)
@@ -467,6 +498,10 @@ class Ui_MainWindow(object):
         self.refresh_salary.setText(QCoreApplication.translate("MainWindow", u"\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c", None))
         self.button_payslip_report.setText(QCoreApplication.translate("MainWindow", u"\u041f\u0435\u0447\u0430\u0442\u044c \u0432\u0435\u0434\u043e\u043c\u043e\u0441\u0442\u0435\u0439", None))
         self.get_full_salary_blanc.setText(QCoreApplication.translate("MainWindow", u"\u0421\u0432\u0435\u0440\u043a\u0430 \u0433\u0440\u0430\u0444\u0438\u043a\u0430", None))
+#if QT_CONFIG(tooltip)
+        self.check_updates_button.setToolTip(QCoreApplication.translate("MainWindow", u"\u041f\u0440\u043e\u0432\u0435\u0440\u0438\u0442\u044c \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u044f", None))
+#endif // QT_CONFIG(tooltip)
+        self.check_updates_button.setText(QCoreApplication.translate("MainWindow", u"\u27f2", None))
         self.version_label.setText(QCoreApplication.translate("MainWindow", u"v2.2.0", None))
     # retranslateUi
 
