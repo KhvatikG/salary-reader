@@ -22,6 +22,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install requests loguru sqlalchemy xmltodict python-dotenv pywin32 openpyxl reportlab pyside6 pysidesix-frameless-window packaging
+        pip install git+https://github.com/KhvatikG/iiko-api.git
         pip install pyinstaller
       
     - name: Build executable
