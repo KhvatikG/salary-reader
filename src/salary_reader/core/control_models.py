@@ -164,6 +164,9 @@ def get_employee_name_by_id(employee_id: str) -> str:
     :return: Полное имя сотрудника.
     """
     # TODO: Получать из внутренней БД
+    if iiko_api is None:
+        return f"Сотрудник {employee_id} (iiko_api недоступен)"
+        
     employee = iiko_api.employees.get_employee_by_id(employee_id)
     if employee:
         system_name = employee.get("name", "Не задано")

@@ -260,6 +260,10 @@ class AttendancesDataDriver:
         """
         logger.info(f"[update_data] Запущено обновление данных")
 
+        if self.iiko_api is None:
+            logger.warning("iiko_api не инициализирован, пропускаем обновление данных")
+            return
+
         if date_from <= date_to:
             with get_session() as session:
                 department = get_department_by_code(session, department_code)
