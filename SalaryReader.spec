@@ -22,7 +22,8 @@ a = Analysis(
     datas=[
         ('src/salary_reader/resources/*', 'resources'),
         ('src/salary_reader/resources/fonts/*', 'resources/fonts'),
-        ('src/salary_reader/resources/images/*', 'resources/images')
+        ('src/salary_reader/resources/images/*', 'resources/images'),
+        ('pyproject.toml', '.')
     ],
     hiddenimports=[
         'iiko_api',

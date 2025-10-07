@@ -756,7 +756,7 @@ class SalaryReader(AcrylicWindow):
         """Скачивает и устанавливает обновление"""
         try:
             from PySide6.QtWidgets import QProgressDialog, QMessageBox
-            from PySide6.QtCore import QThread, pyqtSignal
+            from PySide6.QtCore import QThread, Signal
             
             # Создаем диалог прогресса
             progress = QProgressDialog("Скачивание обновления...", "Отмена", 0, 100, self)
