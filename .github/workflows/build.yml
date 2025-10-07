@@ -27,7 +27,7 @@ jobs:
       
     - name: Build executable
       run: |
-        pyinstaller SalaryReader.spec
+        poetry run pyinstaller SalaryReader.spec
         
     - name: Create release
       id: create_release
