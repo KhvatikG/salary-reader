@@ -27,8 +27,8 @@ jobs:
 
     - name: Check that PySide6 is installed
       run: |
-        poetry run python -c "import PySide6; print('✅ PySide6 version:', PySide6.__version__)"
-        poetry run python -c "import PySide6.QtCore, PySide6.QtWidgets; print('✅ Qt modules OK')"
+        poetry run python -c "import PySide6; print('PySide6 version:', PySide6.__version__)"
+        poetry run python -c "import PySide6.QtCore, PySide6.QtWidgets; print('Qt modules import OK')"
       
     - name: Build executable with PyInstaller
       run: |
