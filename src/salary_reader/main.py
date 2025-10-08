@@ -169,7 +169,7 @@ class SalaryReader(AcrylicWindow):
         # Сводная таблица зарплат
         self.ui.date_from.setDate(QDate.currentDate())
         self.ui.date_to.setDate(QDate.currentDate())
-        self.ui.salar_table.setColumnCount(23)
+        self.ui.salar_table.setColumnCount(24)
         self.ui.salar_table.setHorizontalHeaderLabels(
             ["ФИО",
              "Полное имя",
@@ -191,6 +191,7 @@ class SalaryReader(AcrylicWindow):
              "Кофе",
              "Авансы",
              "Надбавки",
+             "На карту",
              ]
         )
         self.ui.salar_table.setSortingEnabled(True)

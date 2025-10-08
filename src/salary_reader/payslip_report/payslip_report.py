@@ -40,7 +40,8 @@ class ReportGenerator:
                             month,
                             month_rows,
                             deduction: dict,
-                            bonus,
+                            bonus=0,
+                            on_card=0,
                             date_from=None,
                             date_to=None
                             ):
@@ -151,11 +152,11 @@ class ReportGenerator:
             deduction["self"], deduction["revision"], deduction["form"], deduction["coffee"], deduction["advances"]
         ])
         table_data.append([
-            '-', 'Надбавки', 'Вычеты', 'Итог'
+            'На карту', 'Надбавки', 'Вычеты', 'Итог'
         ])
         deductions_sum = sum(list(map(int, deduction.values())))
         table_data.append([
-            '-', bonus, deductions_sum, (salary_sum - int(deductions_sum) + int(bonus))
+            on_card, bonus, deductions_sum, (salary_sum - int(deductions_sum) + int(bonus) - int(on_card))
         ])
 
         return table_data
@@ -169,7 +170,7 @@ class ReportGenerator:
         """
         Генерация отчета по зарплате
 
-        :param additional_info: Надбавки и вычеты.
+        :param additional_info: На карту, надбавки и вычеты.
         :param employee_ids: ID сотрудников
         :param date_from: Дата начала периода
         :param date_to: Дата конца периода
@@ -184,6 +185,8 @@ class ReportGenerator:
             deduction = emp_add_data.get('deduction')
             bonus = emp_add_data.get('bonus', 0)
             logger.warning(f"Вычеты {deduction=} {bonus=}")
+            on_card = emp_add_data.get('on_card', 0)
+            logger.warning(f"На карту {on_card=}")
             name = get_employee_name_by_id(emp_id)
             logger.warning(f"Имя {name}")
             rows = self.parent.get_detailed_table_rows(emp_id)
@@ -192,7 +195,7 @@ class ReportGenerator:
                     self._create_month_table(
                         name, year, month,
                         month_rows,
-                        deduction, bonus,
+                        deduction, bonus, on_card,
                         date_from, date_to,
                     )
                 )
@@ -300,8 +303,9 @@ class ReportGenerator:
                 deduction["advances"] = self.parent.general_table.item(row_num, 21).text()
 
                 bonus = self.parent.general_table.item(row_num, 22).text()
-                add_info[employee_id] = {"deduction": deduction, "bonus": bonus}
-                logger.info(f"Добавляем {employee_id} {deduction} {bonus}")
+                on_card = self.parent.general_table.item(row_num, 23).text()
+                add_info[employee_id] = {"deduction": deduction, "bonus": bonus, "on_card": on_card}
+                logger.info(f"Добавляем {employee_id} {deduction} {bonus} {on_card}")
                 employee_ids.append(employee_id)
 
             if not employee_ids:
