@@ -31,6 +31,7 @@ jobs:
         poetry run python -c "import PySide6.QtCore, PySide6.QtWidgets; print('Qt modules import OK')"
       
     - name: Build executable with PyInstaller
+      shell: cmd
       run: |
         # Очищаем предыдущие сборки
         rmdir /s /q dist || true
