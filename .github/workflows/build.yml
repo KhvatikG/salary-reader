@@ -14,20 +14,28 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.13'
         
-    - name: Install dependencies
+    - name: Install Poetry and dependencies
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install
-        pip install pyinstaller
-      
-    - name: Build executable
+        # Устанавливаем зависимости проекта и dev-зависимости (pyinstaller)
+        poetry install --no-interaction --with dev
+
+    - name: Check that PySide6 is installed
       run: |
-        poetry run pyinstaller SalaryReader.spec
+        poetry run python -c "import PySide6; print('✅ PySide6 version:', PySide6.__version__)"
+        poetry run python -c "import PySide6.QtCore, PySide6.QtWidgets; print('✅ Qt modules OK')"
+      
+    - name: Build executable with PyInstaller
+      run: |
+        # Очищаем предыдущие сборки
+        rmdir /s /q dist || true
+        rmdir /s /q build || true
+        poetry run pyinstaller --noconfirm --clean SalaryReader.spec
         
     - name: Create release
       id: create_release
