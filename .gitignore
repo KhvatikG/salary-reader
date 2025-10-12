@@ -29,3 +29,6 @@ __pycache__
 
 # Stack dump
 bash.exe.stackdump
+
+# Logs
+logs/

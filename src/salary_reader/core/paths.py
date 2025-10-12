@@ -36,3 +36,13 @@ def get_resource_path(relative_path):
     else:
         # Для разработки
         return Path(__file__).parent.parent / relative_path
+
+def get_log_path(relative_path):
+    """Получаем путь до лога"""
+    if is_frozen():
+        # Для exe-файла
+        app_dir = Path(sys.executable).parent
+        return app_dir / "logs" / relative_path
+    else:
+        # Для разработки
+        return Path(__file__).parent.parent / "logs" / relative_path

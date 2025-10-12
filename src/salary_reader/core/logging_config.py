@@ -21,7 +21,8 @@ def get_logger(name: str, level: str = "INFO", filepath: str = None, **kwargs) -
     new_logger.remove() # Удаляем дефолтный логгер
 
     if filepath:
-        new_logger.add(sink=filepath, level=level, **kwargs)
+        # Новый логгер с ротацией по дням
+        new_logger.add(sink=filepath, level=level, rotation="1 day", retention="10 days", **kwargs)
     else:
         # В собранном exe файле sys.stdout может быть недоступен
         try:
@@ -29,10 +30,10 @@ def get_logger(name: str, level: str = "INFO", filepath: str = None, **kwargs) -
         except:
             # Если sys.stdout недоступен, используем stderr или файл
             try:
-                new_logger.add(sink=sys.stderr, level=level, **kwargs)
+                new_logger.add(sink=sys.stderr, level=level, rotation="1 day", retention="10 days", **kwargs)
             except:
                 # Последний резерв - файл в текущей директории
-                new_logger.add(sink="app.log", level=level, **kwargs)
+                new_logger.add(sink="app.log", level=level, rotation="1 day", retention="10 days", **kwargs)
     return new_logger
 
 
