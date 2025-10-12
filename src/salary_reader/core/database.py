@@ -9,6 +9,7 @@ from .paths import get_db_path  # Импорт нового модуля
 # Проверяем доступность sqlite3
 try:
     import sqlite3
+    print("sqlite3 успешно импортирован")
 except ImportError as e:
     print(f"Ошибка импорта sqlite3: {e}")
     print("Попытка исправления...")
@@ -28,6 +29,22 @@ except ImportError as e:
                 break
         else:
             print("sqlite3.dll не найден в стандартных местах")
+    
+    # Если это перезапуск после обновления, показываем более понятное сообщение
+    if "--restart-after-update" in sys.argv:
+        print("=" * 50)
+        print("ОШИБКА ПЕРЕЗАПУСКА ПОСЛЕ ОБНОВЛЕНИЯ")
+        print("=" * 50)
+        print("Приложение было обновлено, но возникла проблема при перезапуске.")
+        print("Это может быть связано с изменениями в структуре файлов.")
+        print("")
+        print("РЕШЕНИЕ:")
+        print("1. Закройте это окно")
+        print("2. Запустите SalaryReader.exe вручную")
+        print("3. Обновление будет применено корректно")
+        print("=" * 50)
+        input("Нажмите Enter для закрытия...")
+        sys.exit(1)
     
     raise e
 

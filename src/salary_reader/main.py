@@ -34,8 +34,7 @@ from salary_reader.core.updater import Updater
 from salary_reader.core.logging_config import get_logger
 from salary_reader.core.paths import get_log_path
 
-logfile_path = get_log_path("app.log")
-logger = get_logger(__name__, filepath=logfile_path, level="DEBUG")
+logger = get_logger(__name__, level="DEBUG")
 
 
 with get_session() as session:
@@ -768,24 +767,53 @@ class SalaryReader(AcrylicWindow):
     def download_and_install_update(self, update_info):
         """Скачивает и устанавливает обновление"""
         try:
+            logger.debug("Скачиваем и устанавливаем обновление...")
             from PySide6.QtWidgets import QProgressDialog, QMessageBox
             from PySide6.QtCore import QThread, Signal
             
+            # Импортируем restart_helper заранее, чтобы обработать возможные ошибки
+            try:
+                from salary_reader.restart_helper import restart_application
+                logger.debug("restart_helper успешно импортирован")
+            except Exception as import_error:
+                logger.error(f"Ошибка при импорте restart_helper: {import_error}")
+                # Если это ошибка декомпрессии, показываем специальное сообщение
+                if "Error -3 while decompressing data" in str(import_error):
+                    self.show_error_message(
+                        "Ошибка при подготовке к перезапуску.\n\n"
+                        "Это известная проблема с PyInstaller.\n\n"
+                        "РЕШЕНИЕ:\n"
+                        "1. Закройте это приложение\n"
+                        "2. Запустите SalaryReader.exe вручную\n"
+                        "3. Обновление будет применено корректно\n\n"
+                        "Приложение работает нормально, просто нужно перезапустить вручную."
+                    )
+                    return
+                else:
+                    raise import_error
+            
             # Создаем диалог прогресса
+            logger.debug("Создаем диалог прогресса...")
             progress = QProgressDialog("Скачивание обновления...", "Отмена", 0, 100, self)
             progress.setWindowModality(Qt.WindowModality.WindowModal)
-            progress.show()
-            
+            progress.show() 
+
             def progress_callback(percent):
-                progress.setValue(percent)
+
+                if percent % 10 == 0:
+                    logger.debug(f"Прогресс скачивания обновления: {percent}%")
+                
+                progress.setValue(int(percent))
                 QApplication.processEvents()
             
             # Скачиваем обновление
             if self.updater.download_update(update_info['download_url'], progress_callback):
+                logger.debug("Обновление скачано")
                 progress.close()
                 
                 # Устанавливаем обновление
                 if self.updater.install_update():
+                    logger.debug("Обновление установлено")
                     # Показываем сообщение об успешной установке
                     msg = QMessageBox(self)
                     msg.setWindowTitle("Обновление установлено")
@@ -793,23 +821,109 @@ class SalaryReader(AcrylicWindow):
                     msg.exec()
                     
                     # Перезапускаем приложение
-                    from salary_reader.restart_helper import restart_application
+                    logger.debug("Перезапускаем приложение...")
                     
-                    if restart_application():
-                        logger.info("Приложение будет перезапущено")
+                    # Показываем диалог с выбором способа перезапуска
+                    from PySide6.QtWidgets import QPushButton
+                    
+                    msg = QMessageBox(self)
+                    msg.setWindowTitle("Обновление установлено")
+                    msg.setText("Обновление успешно установлено!\n\nВыберите способ перезапуска:")
+                    msg.setIcon(QMessageBox.Icon.Information)
+                    
+                    # Создаем кнопки
+                    auto_restart_btn = QPushButton("Автоматический перезапуск")
+                    manual_restart_btn = QPushButton("Ручной перезапуск")
+                    close_btn = QPushButton("Закрыть приложение")
+                    
+                    msg.addButton(auto_restart_btn, QMessageBox.ButtonRole.AcceptRole)
+                    msg.addButton(manual_restart_btn, QMessageBox.ButtonRole.AcceptRole)
+                    msg.addButton(close_btn, QMessageBox.ButtonRole.RejectRole)
+                    
+                    msg.exec()
+                    
+                    clicked_button = msg.clickedButton()
+                    
+                    if clicked_button == auto_restart_btn:
+                        # Автоматический перезапуск
+                        logger.info("Попытка автоматического перезапуска...")
+                        try:
+                            if restart_application():
+                                logger.info("Приложение будет перезапущено автоматически")
+                                sys.exit(0)
+                            else:
+                                logger.debug("Не удалось перезапустить приложение автоматически")
+                                # Показываем сообщение о ручном перезапуске
+                                manual_msg = QMessageBox(self)
+                                manual_msg.setWindowTitle("Ручной перезапуск")
+                                manual_msg.setText(
+                                    "Автоматический перезапуск не удался.\n\n"
+                                    "Для завершения обновления:\n"
+                                    "1. Закройте это приложение\n"
+                                    "2. Запустите SalaryReader.exe вручную\n\n"
+                                    "Обновление будет применено при следующем запуске."
+                                )
+                                manual_msg.setIcon(QMessageBox.Icon.Information)
+                                manual_msg.exec()
+                                sys.exit(0)
+                        except Exception as restart_error:
+                            logger.error(f"Ошибка при попытке перезапуска: {restart_error}")
+                            # Показываем сообщение о ручном перезапуске
+                            manual_msg = QMessageBox(self)
+                            manual_msg.setWindowTitle("Ручной перезапуск")
+                            manual_msg.setText(
+                                "Произошла ошибка при перезапуске.\n\n"
+                                "Для завершения обновления:\n"
+                                "1. Закройте это приложение\n"
+                                "2. Запустите SalaryReader.exe вручную\n\n"
+                                "Обновление будет применено при следующем запуске."
+                            )
+                            manual_msg.setIcon(QMessageBox.Icon.Information)
+                            manual_msg.exec()
+                            sys.exit(0)
+                        
+                    elif clicked_button == manual_restart_btn:
+                        # Ручной перезапуск - показываем инструкции
+                        manual_msg = QMessageBox(self)
+                        manual_msg.setWindowTitle("Ручной перезапуск")
+                        manual_msg.setText(
+                            "Для завершения обновления:\n\n"
+                            "1. Закройте это приложение\n"
+                            "2. Запустите SalaryReader.exe заново\n\n"
+                            "Обновление будет применено при следующем запуске."
+                        )
+                        manual_msg.setIcon(QMessageBox.Icon.Information)
+                        manual_msg.exec()
+                        sys.exit(0)
+                        
                     else:
-                        logger.error("Не удалось перезапустить приложение")
-                        self.show_error_message("Приложение не может быть перезапущено автоматически. Пожалуйста, запустите его вручную.")
-                    
-                    sys.exit(0)
+                        # Просто закрываем приложение
+                        sys.exit(0)
                 else:
-                    self.show_error_message("Ошибка при установке обновления")
+                    logger.debug("Не удалось установить обновление")
+                    self.show_error_message("Ошибка при установке обновления. Проверьте права доступа к файлам.")
             else:
                 progress.close()
-                self.show_error_message("Ошибка при скачивании обновления")
+                self.show_error_message("Ошибка при скачивании обновления. Проверьте подключение к интернету и попробуйте снова.")
                 
         except Exception as e:
-            self.show_error_message(f"Ошибка при обновлении: {e}")
+            error_msg = str(e)
+            logger.error(f"Ошибка при обновлении: {error_msg}")
+            
+            # Специальная обработка ошибки декомпрессии
+            if "Error -3 while decompressing data" in error_msg:
+                logger.error("Обнаружена ошибка декомпрессии при перезапуске")
+                self.show_error_message(
+                    "Ошибка при перезапуске после обновления.\n\n"
+                    "Это известная проблема с PyInstaller.\n\n"
+                    "РЕШЕНИЕ:\n"
+                    "1. Закройте это приложение\n"
+                    "2. Запустите SalaryReader.exe вручную\n"
+                    "3. Обновление будет применено корректно\n\n"
+                    "Приложение работает нормально, просто нужно перезапустить вручную."
+                )
+            else:
+                self.show_error_message(f"Ошибка при обновлении: {error_msg}")
 
     def auto_check_updates(self):
         """Автоматическая проверка обновлений при запуске"""
@@ -831,12 +945,26 @@ class SalaryReader(AcrylicWindow):
 
 
 def run():
+    # Проверяем, если это перезапуск после обновления
+    if "--restart-after-update" in sys.argv:
+        logger.info("Запуск после обновления - пропускаем автоматическую проверку обновлений")
+    
     app = QApplication(sys.argv)
     window = SalaryReader()
     window.show()
     
-    # Автоматическая проверка обновлений при запуске
-    window.auto_check_updates()
+    # Автоматическая проверка обновлений при запуске (только если не перезапуск)
+    if "--restart-after-update" not in sys.argv:
+        window.auto_check_updates()
+    else:
+        logger.info("Перезапуск после обновления - показываем уведомление")
+        # Показываем уведомление об успешном обновлении
+        from PySide6.QtWidgets import QMessageBox
+        msg = QMessageBox()
+        msg.setWindowTitle("Обновление завершено")
+        msg.setText("Приложение успешно обновлено и перезапущено!")
+        msg.setIcon(QMessageBox.Icon.Information)
+        msg.exec()
     
     sys.exit(app.exec())
 

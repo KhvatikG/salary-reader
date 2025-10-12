@@ -5,8 +5,11 @@ import sys
 import loguru
 from loguru import logger
 
+from .paths import get_log_path
 
-def get_logger(name: str, level: str = "INFO", filepath: str = None, **kwargs) -> loguru.Logger:
+logfile_path = get_log_path("app.log")
+
+def get_logger(name: str, level: str = "DEBUG", filepath: str = logfile_path, **kwargs) -> loguru.Logger:
     """
     Возвращает объект логгера
 
@@ -19,22 +22,10 @@ def get_logger(name: str, level: str = "INFO", filepath: str = None, **kwargs) -
 
     new_logger = logger.bind(name=name)
     new_logger.remove() # Удаляем дефолтный логгер
-
-    if filepath:
-        # Новый логгер с ротацией по дням
-        new_logger.add(sink=filepath, level=level, rotation="1 day", retention="10 days", **kwargs)
-    else:
-        # В собранном exe файле sys.stdout может быть недоступен
-        try:
-            new_logger.add(sink=sys.stdout, level=level, **kwargs)
-        except:
-            # Если sys.stdout недоступен, используем stderr или файл
-            try:
-                new_logger.add(sink=sys.stderr, level=level, rotation="1 day", retention="10 days", **kwargs)
-            except:
-                # Последний резерв - файл в текущей директории
-                new_logger.add(sink="app.log", level=level, rotation="1 day", retention="10 days", **kwargs)
+    
+    # Добавляем консольный вывод
+    new_logger.add(sink=sys.stderr, level=level, format="<green>{time:YYYY-MM-DD HH:mm:ss}</green> | <level>{level: <8}</level> | <cyan>{name}</cyan> | <level>{message}</level>")
+    
+    # Добавляем файловый вывод
+    new_logger.add(sink=filepath, level=level, rotation="1 day", retention="10 days", **kwargs)
     return new_logger
-
-
-

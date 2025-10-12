@@ -83,7 +83,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
+    upx=False,  # Отключаем UPX для избежания проблем с декомпрессией
     upx_exclude=[],
     runtime_tmpdir=None,
     console=True,  # False = без консоли (GUI-приложение)

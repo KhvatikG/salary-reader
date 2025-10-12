@@ -10,12 +10,10 @@ from typing import Any, Type
 
 from sqlalchemy.orm import Session
 
-from .logging_config import get_logger
+from loguru import logger
 from .database import get_session
 from .models import Employee, Department, MotivationProgram
 from salary_reader.iiko_init import iiko_api
-
-logger = get_logger(name=__name__)
 
 
 def save_employee(session: Session, employee_data: dict[str, Any]) -> None:
