@@ -487,7 +487,7 @@ class SalaryReader(AcrylicWindow):
         self.ui.employees_table.setRowCount(0)
 
         if current_role := self.ui.roles_list.currentItem():
-            print(f"Current role :{current_role}")
+            print(f"Current role :{current_role.text()}")
             current_role_data: dict = current_role.data(Qt.ItemDataRole.UserRole)
             current_role_id: str = str(current_role_data["role_id"])
 
@@ -704,9 +704,15 @@ class SalaryReader(AcrylicWindow):
                 item = self.ui.salar_table.item(row, col)
                 ws.cell(row=row + 2, column=col + 1).value = item.text()
 
-        wb.save("salary_table.xlsx")
+        # Получаем правильный путь для сохранения файла
+        from salary_reader.core.paths import get_application_path
+        app_path = get_application_path()
+        excel_file_path = app_path / "salary_table.xlsx"
+        
+        wb.save(str(excel_file_path))
+        logger.info(f"Файл сохранен в {excel_file_path}")
 
-        os.startfile("./salary_table.xlsx")
+        os.startfile(str(excel_file_path))
 
     def payslip_report_callback(self):
         """

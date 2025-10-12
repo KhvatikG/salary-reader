@@ -11,14 +11,21 @@ src/salary_reader/db/sqlite.db
 # Data directory
 data/
 
+# Build directory
 dist
 build
 
+# Pycache
 __pycache__
 
+# Database
 *.db
 
-shtraf.png
-
+# PDF
 *.pdf
+
+# Excel
 *.xlsx
+
+# Stack dump
+bash.exe.stackdump
