@@ -40,11 +40,20 @@ class ReportGenerator:
                             month,
                             month_rows,
                             deduction: dict,
-                            bonus=0,
-                            on_card=0,
+                            bonus:int=0,
+                            on_card:int=0,
                             date_from=None,
                             date_to=None
                             ):
+        # Защита от передачи пустых строк в функцию
+        if bonus == "":
+            bonus = 0
+        if on_card == "":
+            on_card = 0
+        for key, value in deduction.items():
+            if value == "":
+                deduction[key] = 0
+        
         # Определяем базовые параметры
         month_start = date(year, month, 1)
         num_days = calendar.monthrange(year, month)[1]
@@ -152,11 +161,18 @@ class ReportGenerator:
             deduction["self"], deduction["revision"], deduction["form"], deduction["coffee"], deduction["advances"]
         ])
         table_data.append([
-            'На карту', 'Надбавки', 'Вычеты', 'Итог'
+            'На карту', 'Надбавки', 'Вычеты', 'Итог', 'В среднем'
         ])
+        # Считаем сумму вычетов
         deductions_sum = sum(list(map(int, deduction.values())))
+        # Считаем итог с учетом вычетов и надбавок
+        total_sum = salary_sum - int(deductions_sum) + int(bonus)
+        # Считаем итог с учетом на карту
+        total_sum_with_on_card = total_sum - int(on_card)
+        # Считаем среднюю зарплату
+        average_salary = round(total_sum / (full_days + partial_days), 2)
         table_data.append([
-            on_card, bonus, deductions_sum, (salary_sum - int(deductions_sum) + int(bonus) - int(on_card))
+            on_card, bonus, deductions_sum, total_sum_with_on_card, average_salary
         ])
 
         return table_data
@@ -244,7 +260,7 @@ class ReportGenerator:
                 logger.debug(f"Формируем таблицу {idx + 1} из {len(page_tables)}")
                 t = Table(
                     table_data,
-                    colWidths=[14 * mm, 20 * mm, 15 * mm, 9 * mm],
+                    colWidths=[14 * mm, 17 * mm, 15 * mm, 9 * mm, 13 * mm],
                     # Первая строка – высота 8 мм, остальные – по 4 мм
                     rowHeights=[8 * mm] + [4 * mm] * (len(table_data) - 1)
                 )
