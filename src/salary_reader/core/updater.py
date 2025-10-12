@@ -1,6 +1,7 @@
 """
 Модуль для проверки и скачивания обновлений приложения
 """
+import datetime
 import json
 import os
 import sys
@@ -101,8 +102,9 @@ class Updater:
         """
         try:
             current_exe = Path(sys.executable)
-            new_exe = current_exe.parent / "SalaryReader_new.exe"
-            backup_exe = current_exe.parent / "SalaryReader_backup.exe"
+            date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            new_exe = current_exe.parent / f"SalaryReader_new_{date_str}.exe"
+            backup_exe = current_exe.parent / f"SalaryReader_backup_{date_str}.exe"
             
             if not new_exe.exists():
                 return False

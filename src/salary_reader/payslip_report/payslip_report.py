@@ -80,7 +80,7 @@ class ReportGenerator:
             days_range = range(1, num_days + 1)
             period_str = f"{month:02d}/{year}"
 
-        # Оптимизация: создаём словарь для быстрого доступа
+        # Создаём словарь для быстрого доступа
         date_to_row = {r['date']: r for r in month_rows}
 
         # Подготовка стилей
@@ -115,6 +115,7 @@ class ReportGenerator:
         salary_sum = 0
         full_days = 0
         partial_days = 0
+        taxi_sum = 0
 
         # Основной цикл обработки дней
         for day in days_range:
@@ -140,6 +141,14 @@ class ReportGenerator:
                 row.get('period', '') if row else "",
                 str(row['salary']) if row and 'salary' in row else ""
             ])
+
+            # Суммируем такси с проверкой
+            try:
+                if row and row.get('is_taxi_paid') and row.get('is_taxi_paid') != "?":
+                    taxi_sum += 200  # Сумма за такси из attendances.py TODO: Вынести в настройки
+                    logger.debug(f"Добавлено такси за {current_date}: 200 руб")
+            except (KeyError, ValueError, TypeError):
+                logger.error(f"Ошибка в данных такси для {current_date}")
 
             # Суммируем зарплату с проверкой
             try:
@@ -169,8 +178,8 @@ class ReportGenerator:
         total_sum = salary_sum - int(deductions_sum) + int(bonus)
         # Считаем итог с учетом на карту
         total_sum_with_on_card = total_sum - int(on_card)
-        # Считаем среднюю зарплату
-        average_salary = round(total_sum / (full_days + partial_days), 2)
+        # Считаем среднюю зарплату с учетом такси
+        average_salary = round((total_sum + taxi_sum) / (full_days + partial_days), 2)
         table_data.append([
             on_card, bonus, deductions_sum, total_sum_with_on_card, average_salary
         ])

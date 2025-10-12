@@ -197,7 +197,7 @@ class AttendancesList:
 
             if is_taxi_paid:
                 employee_attendances_data["taxi_paid_count"] += 1
-                employee_attendances_data["taxi_paid_sum"] += 150
+                employee_attendances_data["taxi_paid_sum"] += 200  # TODO: Вынести в настройки
 
             if hours_duration >= FULL_SHIFT_HOURS:
                 if 1 <= date_.day <= 15:

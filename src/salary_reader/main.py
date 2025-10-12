@@ -31,6 +31,12 @@ from salary_reader.ui.styles import CONFIRM_DIALOG_STYLE, WARNING_DIALOG_STYLE
 from salary_reader.iiko_business_api.employees import update_employees_from_api
 from salary_reader.core.version import get_version_info
 from salary_reader.core.updater import Updater
+from salary_reader.core.logging_config import get_logger
+from salary_reader.core.paths import get_log_path
+
+logfile_path = get_log_path("app.log")
+logger = get_logger(__name__, filepath=logfile_path, level="DEBUG")
+
 
 with get_session() as session:
     EMPLOYEES_INIT = session.query(Employee).all()
@@ -787,8 +793,14 @@ class SalaryReader(AcrylicWindow):
                     msg.exec()
                     
                     # Перезапускаем приложение
-                    import subprocess
-                    subprocess.Popen([sys.executable] + sys.argv[1:])
+                    from salary_reader.restart_helper import restart_application
+                    
+                    if restart_application():
+                        logger.info("Приложение будет перезапущено")
+                    else:
+                        logger.error("Не удалось перезапустить приложение")
+                        self.show_error_message("Приложение не может быть перезапущено автоматически. Пожалуйста, запустите его вручную.")
+                    
                     sys.exit(0)
                 else:
                     self.show_error_message("Ошибка при установке обновления")
