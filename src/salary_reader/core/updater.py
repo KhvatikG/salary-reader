@@ -102,9 +102,9 @@ class Updater:
         """
         try:
             current_exe = Path(sys.executable)
-            date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
+            date_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             new_exe = current_exe.parent / f"SalaryReader_new_{date_str}.exe"
-            backup_exe = current_exe.parent / f"SalaryReader_backup_{date_str}.exe"
+            backup_exe = current_exe.parent / "SalaryReader_backup.exe"
             
             if not new_exe.exists():
                 return False
