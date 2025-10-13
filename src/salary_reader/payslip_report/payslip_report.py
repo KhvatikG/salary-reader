@@ -190,7 +190,7 @@ class ReportGenerator:
         # Считаем итог с учетом на карту
         total_sum_with_on_card = total_sum - on_card
         # Считаем среднюю зарплату с учетом такси
-        average_salary = round((total_sum + taxi_sum) / (full_days + partial_days), 2)
+        average_salary = round((salary_sum + taxi_sum + int(bonus)) / (full_days + partial_days), 2)
         table_data.append([
             on_card, bonus, deductions_sum, total_sum_with_on_card, average_salary
         ])
