@@ -14,6 +14,8 @@ from reportlab.pdfbase.ttfonts import TTFont
 import os
 import subprocess
 
+from salary_reader.core.errors import CardParseError
+
 from ..drivers.attendances import AttendancesDataDriver
 from ..core.control_models import get_employee_name_by_id
 from ..helpers.resources import resource_path
@@ -41,15 +43,24 @@ class ReportGenerator:
                             month_rows,
                             deduction: dict,
                             bonus:int=0,
-                            on_card:int=0,
+                            on_card:float=0.0,
                             date_from=None,
                             date_to=None
                             ):
         # Защита от передачи пустых строк в функцию
         if bonus == "":
             bonus = 0
+
+        
         if on_card == "":
-            on_card = 0
+            on_card = 0.0
+        else:
+            # Карта часто может быть с копейками, поэтому конвертируем в float
+            try:
+                on_card = float(on_card)
+            except (ValueError, TypeError):
+                raise CardParseError(f"Ошибка при конвертации поля на карту: {on_card}\n(Должно быть десятичное число с точкой.)")
+
         for key, value in deduction.items():
             if value == "":
                 deduction[key] = 0
@@ -177,7 +188,7 @@ class ReportGenerator:
         # Считаем итог с учетом вычетов и надбавок
         total_sum = salary_sum - int(deductions_sum) + int(bonus)
         # Считаем итог с учетом на карту
-        total_sum_with_on_card = total_sum - int(on_card)
+        total_sum_with_on_card = total_sum - on_card
         # Считаем среднюю зарплату с учетом такси
         average_salary = round((total_sum + taxi_sum) / (full_days + partial_days), 2)
         table_data.append([
@@ -269,7 +280,7 @@ class ReportGenerator:
                 logger.debug(f"Формируем таблицу {idx + 1} из {len(page_tables)}")
                 t = Table(
                     table_data,
-                    colWidths=[14 * mm, 17 * mm, 15 * mm, 9 * mm, 13 * mm],
+                    colWidths=[14 * mm, 16 * mm, 15 * mm, 10 * mm, 13 * mm],
                     # Первая строка – высота 8 мм, остальные – по 4 мм
                     rowHeights=[8 * mm] + [4 * mm] * (len(table_data) - 1)
                 )

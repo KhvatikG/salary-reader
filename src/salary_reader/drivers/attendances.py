@@ -629,7 +629,7 @@ class AttendancesDataDriver:
                 if row_data['is_taxi_paid'] == "?":
                     self.detailed_table.setItem(row, 4, QTableWidgetItem("?"))
                 else:
-                    self.detailed_table.setItem(row, 4, QTableWidgetItem("150"))
+                    self.detailed_table.setItem(row, 4, QTableWidgetItem("200")) # TODO: Вынести в настройки
             else:
                 self.detailed_table.setItem(row, 4, QTableWidgetItem("0"))
 

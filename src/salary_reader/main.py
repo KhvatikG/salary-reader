@@ -13,6 +13,7 @@ from openpyxl.styles import Alignment, PatternFill, Border, Side, Font
 from openpyxl.workbook import Workbook
 from qframelesswindow import AcrylicWindow, TitleBar, StandardTitleBar
 
+from salary_reader.core.errors import CardParseError
 from salary_reader.drivers.attendances import AttendancesDataDriver
 from salary_reader.core.models import Employee, MotivationProgram, Department
 from salary_reader.core.control_models import delete_motivation_program, get_current_roles_by_department_code, \
@@ -32,7 +33,6 @@ from salary_reader.iiko_business_api.employees import update_employees_from_api
 from salary_reader.core.version import get_version_info
 from salary_reader.core.updater import Updater
 from salary_reader.core.logging_config import get_logger
-from salary_reader.core.paths import get_log_path
 
 logger = get_logger(__name__, level="DEBUG")
 
@@ -731,6 +731,9 @@ class SalaryReader(AcrylicWindow):
         except PermissionError as e:
             self.show_error_message("Отчет открыт в другой программе. Закройте другие программы использующие отчет"
                                     " и повторите попытку.")
+        except CardParseError as e:
+            self.show_error_message(f"Ошибка при создании отчета: {e}")
+
         except Exception as e:
             self.show_error_message(f"Ошибка при создании отчета: Непредвиденная ошибка: {e}")
 
