@@ -33,6 +33,7 @@ from salary_reader.iiko_business_api.employees import update_employees_from_api
 from salary_reader.core.version import get_version_info
 from salary_reader.core.updater import Updater
 from salary_reader.core.logging_config import get_logger
+from salary_reader.splash_screen import show_splash_screen
 
 logger = get_logger(__name__, level="DEBUG")
 
@@ -953,7 +954,24 @@ def run():
         logger.info("Запуск после обновления - пропускаем автоматическую проверку обновлений")
     
     app = QApplication(sys.argv)
+    
+    # Показываем splash screen
+    version_info = get_version_info()
+    splash_path = resource_path("resources/images/splash_background.png")
+    splash = show_splash_screen(app, splash_path, version_info['full_version'])
+    
+    # Обрабатываем события для отображения splash screen
+    app.processEvents()
+    
+    # Создаем и инициализируем главное окно
+    logger.info("Инициализация главного окна...")
     window = SalaryReader()
+    
+    # Обрабатываем события для завершения инициализации
+    app.processEvents()
+    
+    # Скрываем splash screen и показываем главное окно
+    splash.finish(window)
     window.show()
     
     # Автоматическая проверка обновлений при запуске (только если не перезапуск)

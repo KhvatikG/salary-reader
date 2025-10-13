@@ -25,6 +25,7 @@ iiko-api = { git = "https://github.com/KhvatikG/iiko-api.git" }
 pysidesix-frameless-window = "^0.7.1"
 packaging = "^24.0"
 pillow = "^10.0.0"
+numpy = "^2.3.3"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.0.0"
