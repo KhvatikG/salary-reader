@@ -1,9 +1,7 @@
 """
 Модуль для проверки и скачивания обновлений приложения
 """
-import datetime
 import json
-import os
 import sys
 import urllib.request
 import urllib.error
