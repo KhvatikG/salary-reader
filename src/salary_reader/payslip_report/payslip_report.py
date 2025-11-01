@@ -186,11 +186,15 @@ class ReportGenerator:
         # Считаем сумму вычетов
         deductions_sum = sum(list(map(int, deduction.values())))
         # Считаем итог с учетом вычетов и надбавок
-        total_sum = salary_sum - int(deductions_sum) + int(bonus)
+        total_sum = round(salary_sum - int(deductions_sum) + int(bonus), 2)
         # Считаем итог с учетом на карту
-        total_sum_with_on_card = total_sum - on_card
-        # Считаем среднюю зарплату с учетом такси
-        average_salary = round((salary_sum + taxi_sum + int(bonus)) / (full_days + partial_days), 2)
+        total_sum_with_on_card = round(total_sum - on_card, 2)
+        # Считаем среднюю зарплату с учетом 
+        try:
+            average_salary = round((salary_sum + taxi_sum + int(bonus)) / (full_days + partial_days), 2)
+        except ZeroDivisionError:
+            logger.error(f"Ошибка при расчете средней зарплаты: {full_days=} {partial_days=}")
+            average_salary = 0
         table_data.append([
             on_card, bonus, deductions_sum, total_sum_with_on_card, average_salary
         ])

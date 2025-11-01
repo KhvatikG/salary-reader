@@ -8,13 +8,6 @@ sys.path.insert(0, os.path.abspath('src'))
 
 block_cipher = None
 
-# Находим все файлы в директории ui
-ui_files = []
-ui_dir = Path('src/salary_reader/ui')
-for file in ui_dir.glob('*.*'):
-    if file.is_file():
-        ui_files.append((str(file), f'salary_reader/ui'))
-
 a = Analysis(
     ['src/salary_reader/main.py'],
     pathex=[],
@@ -46,7 +39,6 @@ a = Analysis(
         'PySide6.QtWebEngineWidgets',
         'PySide6.QtWebSockets',
         'PySide6.QtXml',
-        'PySide6.QtXmlPatterns',
         'loguru',
         'sqlalchemy',
         'sqlalchemy.dialects.sqlite',
@@ -59,11 +51,22 @@ a = Analysis(
         'requests',
         'packaging',
         'pysidesix_frameless_window',
+        'PIL',
+        'PIL.Image',
+        'PIL._imaging',
     ],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=[
+        'numpy',
+        'numpy.core',
+        'numpy.core._multiarray_umath',
+        'numpy.core._multiarray_tests',
+        'numpy.libs',
+        'numpy.libs._multiarray_umath',
+        'numpy.libs._multiarray_tests',
+    ],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
@@ -83,10 +86,10 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,  # Отключаем UPX для избежания проблем с декомпрессией
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,  # False = без консоли (GUI-приложение)
+    console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

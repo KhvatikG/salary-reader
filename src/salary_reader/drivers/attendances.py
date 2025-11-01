@@ -30,7 +30,7 @@ class ShiftType(enum.Enum):
         elif self == ShiftType.HALF:
             return "Пол смены"
         elif self == ShiftType.WARNING:
-            return "ОБРАТИТЬ ВНИМАНИЕ"
+            return "Внимание!"
         else:
             return "Неизвестный"
 
