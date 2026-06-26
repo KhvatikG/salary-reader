@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "salary-reader"
-version = "2.4.1"
+version = "2.4.2a"
 description = ""
 authors = ["Garik <khvatik.igor@gmail.com>"]
 readme = "README.md"
@@ -21,11 +21,10 @@ pywin32 = "^308"
 openpyxl = "^3.1.5"
 reportlab = "^4.3.0"
 pyside6 = "^6.9.0"
-iiko-api = { git = "https://github.com/KhvatikG/iiko-api.git" }
+iiko-api = { git = "https://github.com/KhvatikG/iiko-api.git", rev = "cafb3a23ff23d7861bea0ee28f048b58c7289e5f" }
 pysidesix-frameless-window = "^0.7.1"
 packaging = "^24.0"
 pillow = "^10.0.0"
-numpy = "^2.3.3"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^6.0.0"

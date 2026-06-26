@@ -11,9 +11,11 @@ from typing import Any, Type
 from sqlalchemy.orm import Session
 
 from loguru import logger
+from iiko_api import EmployeeNotFoundError
+
 from .database import get_session
 from .models import Employee, Department, MotivationProgram
-from salary_reader.iiko_init import iiko_api
+from salary_reader.iiko_init import iiko_api, safe_iiko_auth
 
 
 def save_employee(session: Session, employee_data: dict[str, Any]) -> None:
@@ -99,11 +101,11 @@ def delete_motivation_program(role_id):
                 session.commit()
             except Exception as e:
                 logger.error(f"Ошибка удаления программы мотивации: {e}")
-                raise f"Ошибка удаления программы мотивации:\n {e}"
+                raise RuntimeError(f"Ошибка удаления программы мотивации: {e}") from e
 
         else:
-            logger.error(f"Мотивационная программа не найдена")
-            raise "Мотивационная программа не найдена"
+            logger.error("Мотивационная программа не найдена")
+            raise ValueError("Мотивационная программа не найдена")
 
 
 def get_current_roles_by_department_code(department_code: str) -> list[MotivationProgram]:
@@ -152,28 +154,36 @@ def get_department_by_code(session: Session, department_code: str) -> Type[Depar
     return session.query(Department).filter_by(code=department_code).one_or_none()
 
 
-def get_employee_name_by_id(employee_id: str) -> str:
-    """
-    Возвращает имя сотрудника по его ID, из iiko,
-    позже реализую из внутренней БД.
+def _employee_display_name_from_iiko(employee: dict) -> str:
+    """Собирает отображаемое имя из полей iiko (firstName + lastName)."""
+    system_name = employee.get("name", "Не задано")
+    tabel = employee.get("code", "Не задан")
+    first_name = employee.get("firstName", f"Имя не задано в iiko (Системное имя: {system_name})")
+    last_name = employee.get("lastName", f"Фамилия не задано в iiko (Табель: {tabel})")
+    return first_name + " " + last_name
 
-    :param session: Session SQLAlchemy.
-    :param employee_id: ID сотрудника.
-    :return: Полное имя сотрудника.
+
+def get_employee_name_by_id(employee_id: str, *, authenticated: bool = False) -> str:
     """
-    # TODO: Получать из внутренней БД
+    Возвращает отображаемое имя сотрудника по его ID из iiko.
+
+    :param employee_id: ID сотрудника (UUID iiko).
+    :param authenticated: Если True, iiko-сессия уже открыта (без повторного login).
+    :return: firstName + lastName из iiko.
+    """
     if iiko_api is None:
         return f"Сотрудник {employee_id} (iiko_api недоступен)"
-        
-    employee = iiko_api.employees.get_employee_by_id(employee_id)
-    if employee:
-        system_name = employee.get("name", "Не задано")
-        tabel = employee.get("code", "Не задан")
-        first_name = employee.get("firstName", f"Имя не задано в iiko (Системное имя: {system_name})")
-        last_name = employee.get("lastName", f"Фамилия не задано в iiko (Табель: {tabel})")
-        full_name = first_name + " " + last_name
-        return full_name
-    else:
-        # TODO: Добавить исключение
-        logger.error(f"Сотрудник с ID {employee_id} не найден")
-        return ""
+
+    def _fetch() -> str:
+        try:
+            employee = iiko_api.employees.get_employee_by_id(employee_id)
+            return _employee_display_name_from_iiko(employee)
+        except EmployeeNotFoundError:
+            logger.error(f"Сотрудник с ID {employee_id} не найден")
+            return f"Сотрудник {employee_id} (не найден)"
+
+    if authenticated:
+        return _fetch()
+
+    with safe_iiko_auth():
+        return _fetch()

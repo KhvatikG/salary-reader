@@ -19,6 +19,7 @@ from salary_reader.core.errors import CardParseError
 from ..drivers.attendances import AttendancesDataDriver
 from ..core.control_models import get_employee_name_by_id
 from ..helpers.resources import resource_path
+from ..iiko_init import safe_iiko_auth
 
 filename = resource_path('resources/fonts/DejaVuSans.ttf')
 pdfmetrics.registerFont(TTFont('DejaVuSans', filename))
@@ -219,26 +220,27 @@ class ReportGenerator:
         all_tables = []
         count_period_days = (date_to - date_from).days
 
-        for emp_id in employee_ids:
-            emp_add_data = additional_info.get(emp_id, {}) if additional_info else {}
-            logger.warning(f"Инфо о сотруднике {emp_id}:\n{emp_add_data}")
-            deduction = emp_add_data.get('deduction')
-            bonus = emp_add_data.get('bonus', 0)
-            logger.warning(f"Вычеты {deduction=} {bonus=}")
-            on_card = emp_add_data.get('on_card', 0)
-            logger.warning(f"На карту {on_card=}")
-            name = get_employee_name_by_id(emp_id)
-            logger.warning(f"Имя {name}")
-            rows = self.parent.get_detailed_table_rows(emp_id)
-            for (year, month), month_rows in self._group_by_month(rows).items():
-                all_tables.append(
-                    self._create_month_table(
-                        name, year, month,
-                        month_rows,
-                        deduction, bonus, on_card,
-                        date_from, date_to,
+        with safe_iiko_auth():
+            for emp_id in employee_ids:
+                emp_add_data = additional_info.get(emp_id, {}) if additional_info else {}
+                logger.warning(f"Инфо о сотруднике {emp_id}:\n{emp_add_data}")
+                deduction = emp_add_data.get('deduction')
+                bonus = emp_add_data.get('bonus', 0)
+                logger.warning(f"Вычеты {deduction=} {bonus=}")
+                on_card = emp_add_data.get('on_card', 0)
+                logger.warning(f"На карту {on_card=}")
+                name = get_employee_name_by_id(emp_id, authenticated=True)
+                logger.warning(f"Имя {name}")
+                rows = self.parent.get_detailed_table_rows(emp_id)
+                for (year, month), month_rows in self._group_by_month(rows).items():
+                    all_tables.append(
+                        self._create_month_table(
+                            name, year, month,
+                            month_rows,
+                            deduction, bonus, on_card,
+                            date_from, date_to,
+                        )
                     )
-                )
         logger.debug(f"Начинаем формировать PDF...")
         pdf_filename = "payslip_report.pdf"
         c = canvas.Canvas(pdf_filename, pagesize=A4)

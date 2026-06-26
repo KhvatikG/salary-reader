@@ -3,7 +3,8 @@ from typing import Type
 from sqlalchemy.orm import Session
 
 from ..core.models import Employee, Department
-from salary_reader.iiko_init import iiko_api
+from salary_reader.helpers.iiko_helpers import normalize_department_codes
+from salary_reader.iiko_init import iiko_api, safe_iiko_auth
 from salary_reader.core.logging_config import get_logger
 
 logger = get_logger(__name__, level="DEBUG")
@@ -25,18 +26,23 @@ def update_employees_from_api(session: Session):
         logger.debug(f"Существующие сотрудники: {existing_employees}")
         existing_employees_dict = {emp.id: emp for emp in existing_employees}
 
-        with iiko_api.auth_context():
-            logger.debug(f"Получение ролей iiko")
+        with safe_iiko_auth():
+            logger.debug("Получение ролей iiko")
             roles = iiko_api.roles.get_roles()
             roles_name_dict = {role["id"]: role["name"] for role in roles}
             logger.debug(f"Роили iiko получены {roles_name_dict}")
 
-        logger.debug(f"Получение сотрудников из iiko...")
-        api_employees: list[dict] = iiko_api.employees.get_employees()
-        logger.debug(f"Сотрудники получены из iiko:\n  {api_employees}\n")
+            logger.debug("Получение сотрудников из iiko...")
+            api_employees_raw = iiko_api.employees.get_employees()
+            if isinstance(api_employees_raw, dict):
+                api_employees = [api_employees_raw]
+            else:
+                api_employees = api_employees_raw or []
+            logger.debug(f"Сотрудники получены из iiko:\n  {api_employees}\n")
 
         for employee_data in api_employees:
-            if not employee_data.get("departmentCodes"):
+            department_codes = normalize_department_codes(employee_data.get("departmentCodes"))
+            if not department_codes:
                 logger.debug(f"Сотрудник {employee_data} не имеет отдела(скорее всего служебный аккаунт) -> пропускаем")
                 continue
             if not employee_data.get("code"):
@@ -53,7 +59,6 @@ def update_employees_from_api(session: Session):
                 existing_employee.position = roles_name_dict.get(employee_data.get("mainRoleId"))
                 existing_employee.code = employee_data.get("code")
 
-                department_codes = employee_data.get("departmentCodes")
                 new_departments: list[Type[Department]] = []
 
                 for department_code in department_codes:
@@ -75,7 +80,6 @@ def update_employees_from_api(session: Session):
                     code=employee_data.get("code"),
                 )
 
-                department_codes = employee_data.get("departmentCodes")
                 for department_code in department_codes:
                     department = session.query(Department).filter_by(code=department_code).first()
                     if department:

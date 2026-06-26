@@ -6,10 +6,12 @@ from uuid import UUID
 from PySide6.QtGui import QColor, Qt
 from PySide6.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 
+from iiko_api import EmployeeNotFoundError, RoleNotFoundError
+
 from salary_reader.core.database import get_session
-from salary_reader.core.models import MotivationProgram, MotivationThreshold, Employee
+from salary_reader.core.models import MotivationThreshold, Employee
 from salary_reader.core.control_models import get_department_by_code
-from salary_reader.iiko_init import iiko_api
+from salary_reader.iiko_init import iiko_api, safe_iiko_auth
 from salary_reader.core.logging_config import get_logger
 
 # TODO: Вынести в settings(Для настроек нужна отдельная таблица в бд)
@@ -70,8 +72,16 @@ class Attendance:
     :var attendance_string Строковое представление явки.
     """
 
-    def __init__(self, employee_id: EmployeeId, date_from: datetime, date_to: datetime):
+    def __init__(
+            self,
+            employee_id: EmployeeId,
+            date_from: datetime,
+            date_to: datetime,
+            *,
+            crosses_period_boundary: bool = False,
+    ):
         self.employee_id = employee_id
+        self.crosses_period_boundary = crosses_period_boundary
 
         # Если явка закрыта после 22 часов, то устанавливается 22 часа.(чтобы не учитывать время после смены)
         if date_to.hour > 22 or (date_to.hour == 22 and date_to.minute > 0):
@@ -113,7 +123,12 @@ class Attendance:
         self.duration = timedelta(minutes=rounded_minutes)
 
         # Строка отражающая период явки
-        self.attendance_string = f'{self.date_from.strftime("%H:%M")} - {self.date_to.strftime("%H:%M")}'
+        if crosses_period_boundary:
+            self.attendance_string = (
+                f'{self.date_from.strftime("%d.%m %H:%M")} - {self.date_to.strftime("%d.%m %H:%M")}'
+            )
+        else:
+            self.attendance_string = f'{self.date_from.strftime("%H:%M")} - {self.date_to.strftime("%H:%M")}'
 
         if (self.duration > timedelta(hours=6)) and (self.date_to.hour > 20):
 
@@ -185,10 +200,14 @@ class AttendancesList:
                     duration_ += attendance_.duration
                     if attendance_.is_taxi_paid:
                         is_taxi_paid = True
+                    if attendance_.crosses_period_boundary:
+                        employee_attendances_data["warnings"] = True
             else:
                 duration_ = employee_attendances[date_][0].duration
                 if employee_attendances[date_][0].is_taxi_paid:
                     is_taxi_paid = True
+                if employee_attendances[date_][0].crosses_period_boundary:
+                    employee_attendances_data["warnings"] = True
 
             # TODO: Вынести в настройки пороги длительности явки
             hours_duration = duration_.total_seconds() / 3600
@@ -250,6 +269,13 @@ class AttendancesDataDriver:
         self.sales: dict[date, int] = {}
         self.employees_shifts: dict = {}
         self.employees_attendances: AttendancesList = AttendancesList()
+        self.period_date_from: date | None = None
+        self.period_date_to: date | None = None
+        self.general_table.itemDoubleClicked.connect(self.on_general_table_double_clicked)
+
+    @staticmethod
+    def _as_date(value: datetime | date) -> date:
+        return value.date() if isinstance(value, datetime) else value
 
     def update_data(self, date_from: datetime, date_to: datetime, department_code: str) -> None:
         """
@@ -265,21 +291,25 @@ class AttendancesDataDriver:
             return
 
         if date_from <= date_to:
+            self.period_date_from = self._as_date(date_from)
+            self.period_date_to = self._as_date(date_to)
+
             with get_session() as session:
                 department = get_department_by_code(session, department_code)
 
-            self.api_attendances = self.iiko_api.employees.get_attendances_for_department(
-                department_code=department_code,
-                date_from=date_from,
-                date_to=date_to
-            )
+            with safe_iiko_auth():
+                self.api_attendances = self.iiko_api.employees.get_attendances_for_department(
+                    department_code=department_code,
+                    date_from=date_from,
+                    date_to=date_to,
+                )
+                self.sales = self.iiko_api.reports.get_sales_report(
+                    date_from=date_from,
+                    date_to=date_to,
+                    department_id=department.id,
+                )
 
             self.prepare_data()
-            self.sales = self.iiko_api.reports.get_sales_report(
-                date_from=date_from,
-                date_to=date_to,
-                department_id=department.id
-            )
         else:
             raise ValueError("Дата начала периода больше даты окончания периода")
         logger.info(f"[update_data] Обновление данных завершено: \n  {self.api_attendances=}\n\n  {self.sales=}\n\n")
@@ -289,6 +319,10 @@ class AttendancesDataDriver:
         Подготавливает данные для выгрузки в QTableWidget.
         """
         logger.info(f"Запущенна подготовка данных... \n  {self.api_attendances=}\n")
+        if isinstance(self.api_attendances, dict):
+            self.api_attendances = [self.api_attendances]
+        elif not self.api_attendances:
+            self.api_attendances = []
         # Пересоздаем список явок, чтобы отчистить от старых данных
         self.employees_attendances = AttendancesList()
         for attendance in self.api_attendances:
@@ -308,14 +342,39 @@ class AttendancesDataDriver:
 
             logger.debug(f"Обработка явки:\n  {attendance=}")
             date_from = datetime.fromisoformat(attendance['dateFrom'])
-            # Если у смены нет времени закрытия, то ставим время открытия(скорее всего это сегодняшняя смена)
             date_to = datetime.fromisoformat(attendance.get('dateTo', attendance['dateFrom']))
+
+            if self.period_date_from is not None and self.period_date_to is not None:
+                overlaps_period = (
+                    date_from.date() <= self.period_date_to
+                    and date_to.date() >= self.period_date_from
+                )
+                if not overlaps_period:
+                    logger.debug(
+                        f"Явка сотрудника {employee_id} "
+                        f"({date_from.date()}–{date_to.date()}) не пересекает период "
+                        f"{self.period_date_from}–{self.period_date_to}, пропускаем"
+                    )
+                    continue
+                crosses_period_boundary = (
+                    date_from.date() < self.period_date_from
+                    or date_to.date() > self.period_date_to
+                )
+            else:
+                crosses_period_boundary = False
+
             # TODO: Вынести расписание в настройки
             # Если открыта в промежуток между 07:00 и 22:00
             if 7 <= date_from.hour <= 22:
-                attendance_obj = Attendance(employee_id=employee_id, date_from=date_from, date_to=date_to)
+                attendance_obj = Attendance(
+                    employee_id=employee_id,
+                    date_from=date_from,
+                    date_to=date_to,
+                    crosses_period_boundary=crosses_period_boundary,
+                )
                 logger.debug(f"Условия по расписанию выполнены создана явка:"
-                             f"\n  {employee_id=}\n  {date_from=}\n  {date_to=}\n  {attendance_obj=}")
+                             f"\n  {employee_id=}\n  {date_from=}\n  {date_to=}\n"
+                             f"  {crosses_period_boundary=}\n  {attendance_obj=}")
                 self.employees_attendances.add_attendance(attendance_obj)
                 logger.debug(f"Явка {attendance_obj} добавлена в список явок,"
                              f" в нем {len(self.employees_attendances)} явок.")
@@ -401,92 +460,103 @@ class AttendancesDataDriver:
         Возвращает список словарей с данными для вывода в сводную таблицу зарплаты(QTableWidget).
         """
         rows = []
+        eligible_employees: list[tuple[EmployeeId, list[str]]] = []
+
         for employee_id in self.employees_attendances.attendances:
-            # TODO: Получать сотрудников из внутренней базы данных
-            employee_ = iiko_api.employees.get_employee_by_id(employee_id)
-
-            if not employee_:
-                # TODO: Перехватить в интерфейсе и выбросить окно
-                raise ValueError(f"Сотрудник {employee_id} не найден")
-
-            if not employee_.get('departmentCodes', None):
-                # Если сотрудник не имеет департаментов(служебные аккаунты и менеджеры) пропускаем
-                logger.warning(f"Сотрудник {employee_id} не имеет департаментов")
-                continue
-
-            if not employee_.get('mainRoleId', None):
-                # Если сотрудник не имеет роли в iiko пропускаем
-                # Подразумевается что всем кому считаем зп выделены роли в iiko
-                logger.warning(f"Сотрудник {employee_.get('name', 'Не удалось получить имя')}"
-                               f" (ID={employee_id}) не имеет роли в iiko")
-                continue
-
             with get_session() as session:
-                departments = [
-                    get_department_by_code(session, department_code).name for department_code in
-                    employee_['departmentCodes']]
-
-                motivation_program = session.query(MotivationProgram).filter(
-                    MotivationProgram.employees.any(Employee.id == employee_id)
-                ).one_or_none()
-
-                if not motivation_program:
-                    # Если нет программы мотивации, то пропускаем
-                    logger.warning(f"Сотрудник {employee_.get('name', 'Не удалось получить имя')}"
-                                   f" (ID={employee_id}) не имеет привязанных программ мотивации")
+                employee_db = session.query(Employee).filter(Employee.id == employee_id).first()
+                if not employee_db:
+                    logger.warning(f"Сотрудник {employee_id} не найден в базе данных")
                     continue
 
-            employee_attendances_data = self.employees_attendances.get_general_row_data(employee_id)
-            logger.debug(f"Данные по явкам сотрудника {employee_.get('name', 'Не удалось получить имя')}"
-                         f" (ID={employee_id}): {employee_attendances_data}")
+                if not employee_db.departments:
+                    logger.warning(
+                        f"Сотрудник {employee_db.name} (ID={employee_id}) не имеет департаментов"
+                    )
+                    continue
 
-            total_salary = 0
-            from_1_total_salary = 0
-            from_16_total_salary = 0
+                if not employee_db.motivation_program:
+                    logger.warning(
+                        f"Сотрудник {employee_db.name} (ID={employee_id}) "
+                        f"не имеет привязанных программ мотивации"
+                    )
+                    continue
 
-            # TODO: Возможно стоит перенести
-            self.employees_shifts[employee_.get("id")] = employee_attendances_data['shifts'].copy()
-            for date_, data in employee_attendances_data['shifts'].items():
+                departments = [department.name for department in employee_db.departments]
+                eligible_employees.append((employee_id, departments))
 
-                shift_type = data['shift_type']
-                hours_duration = data['hours_duration']
-                if date_ in self.sales:
+        with safe_iiko_auth():
+            for employee_id, departments in eligible_employees:
+                try:
+                    employee_ = iiko_api.employees.get_employee_by_id(employee_id)
+                except EmployeeNotFoundError:
+                    logger.warning(f"Сотрудник {employee_id} не найден в iiko")
+                    continue
+
+                if not employee_.get('mainRoleId', None):
+                    logger.warning(
+                        f"Сотрудник {employee_.get('name', 'Не удалось получить имя')}"
+                        f" (ID={employee_id}) не имеет роли в iiko"
+                    )
+                    continue
+
+                employee_attendances_data = self.employees_attendances.get_general_row_data(employee_id)
+                logger.debug(
+                    f"Данные по явкам сотрудника {employee_.get('name', 'Не удалось получить имя')}"
+                    f" (ID={employee_id}): {employee_attendances_data}"
+                )
+
+                total_salary = 0
+                from_1_total_salary = 0
+                from_16_total_salary = 0
+
+                self.employees_shifts[employee_.get("id")] = employee_attendances_data['shifts'].copy()
+                for date_, data in employee_attendances_data['shifts'].items():
+                    shift_type = data['shift_type']
+                    hours_duration = data['hours_duration']
+                    if date_ not in self.sales:
+                        logger.warning(
+                            f"Дата {date_} отсутствует в отчёте о продажах, "
+                            f"считаем выручку = 0"
+                        )
                     salary_ = self.calculate_salary(
                         employee_id,
                         date_,
                         shift_type,
                         per_hour=True,
-                        duration_seconds=hours_duration * 3600
+                        duration_seconds=hours_duration * 3600,
                     )
                     logger.debug(f"ЗП за {date_}: {salary_} продолжительность: {hours_duration}")
-                else:
-                    logger.warning(f"Дата {date_} не найдена в отчете о продажах")
-                    logger.debug(f"Тип переменной даты: {type(date_)=}")
-                    logger.debug(f"Словарь в котором ищем дату:{self.sales}")
-                    # TODO: Создать кастомное исключение для этого и обработать это исключение в ui - выбросить окно
-                    raise ValueError(f"Дата {date_} не найдена в отчете о продажах")
-                total_salary += salary_
-                if 1 <= date_.day <= 15:
-                    from_1_total_salary += salary_
-                elif 16 <= date_.day <= 31:
-                    from_16_total_salary += salary_
+                    total_salary += salary_
+                    if 1 <= date_.day <= 15:
+                        from_1_total_salary += salary_
+                    elif 16 <= date_.day <= 31:
+                        from_16_total_salary += salary_
 
-            first_name = employee_.get('firstName', " ")
-            last_name = employee_.get('lastName', " ")
+                first_name = employee_.get('firstName', " ")
+                last_name = employee_.get('lastName', " ")
 
-            employee_attendances_data.update({
-                "name": employee_['name'],
-                "full_name": first_name + ' ' + last_name,
-                "role": self.iiko_api.roles.get_role_by_id(employee_['mainRoleId'])['name'],
-                "code": employee_['code'],
-                "departments": " ".join(departments),
-                "id": employee_id,
-                "salary": total_salary,
-                "from_1_salary": from_1_total_salary,
-                "from_16_salary": from_16_total_salary,
+                try:
+                    role_name = self.iiko_api.roles.get_role_by_id(employee_['mainRoleId'])['name']
+                except RoleNotFoundError:
+                    logger.warning(
+                        f"Роль {employee_['mainRoleId']} не найдена для сотрудника {employee_id}"
+                    )
+                    continue
 
-            })
-            rows.append(employee_attendances_data)
+                employee_attendances_data.update({
+                    "name": employee_['name'],
+                    "full_name": first_name + ' ' + last_name,
+                    "role": role_name,
+                    "code": employee_['code'],
+                    "departments": " ".join(departments),
+                    "id": employee_id,
+                    "salary": total_salary,
+                    "from_1_salary": from_1_total_salary,
+                    "from_16_salary": from_16_total_salary,
+                })
+                rows.append(employee_attendances_data)
+
         return rows
 
     def render_general_table(self) -> None:
@@ -541,8 +611,6 @@ class AttendancesDataDriver:
         self.general_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
         self.general_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
 
-        self.general_table.itemDoubleClicked.connect(self.on_general_table_double_clicked)
-
     def on_general_table_double_clicked(self, item: QTableWidgetItem) -> None:
         """
         Вызывается при двойном клике на строке таблицы с общей информацией о зарплате.
@@ -593,7 +661,12 @@ class AttendancesDataDriver:
                 period = employee_attendance[0].attendance_string
                 attendance_duration = employee_attendance[0].duration.total_seconds()
 
+            if any(attendance.crosses_period_boundary for attendance in employee_attendance):
+                warning = True
+
             shift_type = self.get_shift_type(employee_id, date_)
+            if shift_type == ShiftType.WARNING:
+                warning = True
             salary = self.calculate_salary(
                 employee_id,
                 date_,

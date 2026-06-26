@@ -277,9 +277,13 @@ class SalaryReader(AcrylicWindow):
                     session.commit()  # Сохраняем изменения, если всё успешно
                     print(f"[set_current_roles] Сотрудники для отдела {department_code} обновлены")
             except Exception as e:
-                session.rollback()  # Откатываем изменения в случае ошибки
-                print(f"[set_current_roles] Ошибка при обновлении данных сотрудников: {e}")
-                raise e
+                session.rollback()
+                logger.error(f"Ошибка при обновлении данных сотрудников для {department_code}: {e}")
+                self.show_error_message(
+                    title="Ошибка синхронизации с iiko",
+                    message=f"Не удалось обновить список сотрудников:\n{e}\n\n"
+                            "Список программ мотивации будет показан по локальным данным.",
+                )
 
         # Получаем роли привязанные к выбранному отделу по коду отдела
         current_roles = get_current_roles_by_department_code(department_code)
@@ -388,7 +392,7 @@ class SalaryReader(AcrylicWindow):
 
         with get_session() as session:
             current_roles = get_current_roles_by_department_code(self.ui.department.currentData()["department_code"])
-            if new_name not in [role.name for role in current_roles]:
+            if new_name not in [role.name for role in current_roles if role.id != current_role_id]:
                 session.query(MotivationProgram).filter(MotivationProgram.id == current_role_id
                                                         ).update({"name": new_name})
                 session.commit()
@@ -641,80 +645,72 @@ class SalaryReader(AcrylicWindow):
         """
         Экспортирует данные из сводной таблицы зарплат в Excel
         """
-        # Создаем новый документ
+        headers = [
+            "ФИО",
+            "Полное имя",
+            "Сумма ЗП\nc 1 по 15",
+            "Кол-во полных смен\nс 1 по 15",
+            "Кол-во неполных смен\nс 1 по 15",
+            "Сумма ЗП\n c 16 до конца месяца",
+            "Кол-во полных смен\n c 16 до конца месяца",
+            "Кол-во неполных смен\n c 16 до конца месяца",
+            "Сумма ЗП\n за весь месяц",
+            "Кол-во полных смен\n за весь месяц",
+            "Кол-во неполных смен\n за весь месяц",
+            "Кол-во оплаченных\nпоездок такси",
+            "Сумма оплаченных\nпоездок такси",
+            "Роль",
+            "Отдел",
+            "Табельный",
+            "id",
+            "Личные списания",
+            "Ревизия",
+            "Форма",
+            "Кофе",
+            "Авансы",
+            "Надбавки",
+            "На карту",
+        ]
+
         wb = Workbook()
         ws = wb.active
-        ws.Name = "Сводная таблица зарплат"
-        ws.cell(1, 1).value = "ФИО"
-        ws.cell(1, 2).value = "Полное имя"
-        ws.cell(1, 3).value = "Сумма зарплаты\nc 1 по 15"
-        ws.cell(1, 4).value = "Кол-во полных смен\nс 1 по 15"
-        ws.cell(1, 5).value = "Кол-во неполных смен\nс 1 по 15"
-        ws.cell(1, 6).value = "Сумма зарплаты\nc 16-го до конца месяца"
-        ws.cell(1, 7).value = "Кол-во полных смен\nc 16-го до конца месяца"
-        ws.cell(1, 8).value = "Кол-во неполных смен\nc 16-го до конца месяца"
-        ws.cell(1, 9).value = "Сумма зарплаты\nза весь месяц"
-        ws.cell(1, 10).value = "Кол-во полных смен\nза весь месяц"
-        ws.cell(1, 11).value = "Кол-во неполных смен\nза весь месяц"
-        ws.cell(1, 12).value = "Кол-во оплаченных\nпоездок такси"
-        ws.cell(1, 13).value = "Сумма оплаченных\nпоездок такси"
-        ws.cell(1, 14).value = "Должность"
-        ws.cell(1, 15).value = "Отдел"
-        ws.cell(1, 16).value = "Табельный номер"
-        ws.cell(1, 17).value = "id"
+        ws.title = "Сводная таблица зарплат"
 
-        # Устанавливаем выравнивание по центру и перенос текста, шрифт, бордеры, а также заливку
-        for col in range(1, 16):
-            ws.cell(1, col).alignment = Alignment(
+        for col, header in enumerate(headers, start=1):
+            cell = ws.cell(1, col)
+            cell.value = header
+            cell.alignment = Alignment(
                 horizontal="center",
                 vertical="center",
                 wrap_text=True,
             )
-            ws.cell(1, col).fill = PatternFill(
+            cell.fill = PatternFill(
                 start_color="00339966",
                 end_color="00339966",
                 fill_type="solid",
             )
-
-            ws.cell(1, col).border = Border(
+            cell.border = Border(
                 left=Side(border_style="thin", color="000000"),
                 right=Side(border_style="thin", color="000000"),
                 top=Side(border_style="thin", color="000000"),
                 bottom=Side(border_style="thin", color="000000"),
             )
-
-            ws.cell(1, col).font = Font(
+            cell.font = Font(
                 bold=True,
                 color="00FFFFFF",
                 name="Arial",
             )
-
-        ws.column_dimensions['A'].width = 20
-        ws.column_dimensions['B'].width = 23
-        ws.column_dimensions['C'].width = 20
-        ws.column_dimensions['D'].width = 20
-        ws.column_dimensions['E'].width = 23
-        ws.column_dimensions['F'].width = 20
-        ws.column_dimensions['G'].width = 20
-        ws.column_dimensions['H'].width = 20
-        ws.column_dimensions['I'].width = 20
-        ws.column_dimensions['J'].width = 20
-        ws.column_dimensions['K'].width = 20
-        ws.column_dimensions['L'].width = 20
-        ws.column_dimensions['M'].width = 20
-        ws.column_dimensions['N'].width = 20
-        ws.column_dimensions['O'].width = 20
+            ws.column_dimensions[cell.column_letter].width = 20
 
         for row in range(self.ui.salar_table.rowCount()):
             for col in range(self.ui.salar_table.columnCount()):
                 item = self.ui.salar_table.item(row, col)
-                ws.cell(row=row + 2, column=col + 1).value = item.text()
+                ws.cell(row=row + 2, column=col + 1).value = item.text() if item else ""
 
-        # Получаем правильный путь для сохранения файла
         from salary_reader.core.paths import get_application_path
         app_path = get_application_path()
         excel_file_path = app_path / "salary_table.xlsx"
-        
+
         wb.save(str(excel_file_path))
         logger.info(f"Файл сохранен в {excel_file_path}")
 
